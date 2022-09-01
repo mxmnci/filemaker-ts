@@ -1,6 +1,9 @@
-export const sum = (a: number, b: number) => {
-  if ('development' === process.env.NODE_ENV) {
-    console.log('boop');
+type FilemakerDataApiOptions = {};
+
+export class FileMakerDataApi {
+  private http: Http;
+
+  constructor(options?: FilemakerDataApiOptions) {
+    this.http = new Http(options?.accessToken ?? '');
   }
-  return a + b;
-};
+}
