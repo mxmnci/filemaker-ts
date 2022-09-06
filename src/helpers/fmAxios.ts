@@ -1,34 +1,24 @@
 import axios, { AxiosError, AxiosRequestConfig, Method } from 'axios';
 import { BASE_API_URL } from '../constants';
-import { encodeToBase64 } from './encodeToBase64';
 
 export type FMAxiosConfig = AxiosRequestConfig & { contentType?: string };
-type FMAxiosOptions = {
-  url: string;
-  method: Method;
-  user: string;
-  password: string;
-  host: string;
-  database: string;
-  layout: string;
-  config?: FMAxiosConfig;
-};
 
-export async function fmAxios<T>(options: FMAxiosOptions) {
+export async function fmAxios<T>(
+  url: string,
+  method: Method,
+  authToken: string,
+  config?: FMAxiosConfig
+) {
   try {
-    const { url, method, user, password, config } = options;
-    const { contentType, ...fmConfig } = config ?? {};
-
-    const encodedUserAndPassword = encodeToBase64(`${user}:${password}`);
+    const { contentType, ...axiosConfig } = config ?? {};
 
     const response = await axios({
-      ...fmConfig,
+      ...axiosConfig,
       baseURL: BASE_API_URL,
       headers: {
-        Authorization: `Basic ${encodedUserAndPassword}`,
+        Authorization: `Bearer ${authToken}`,
         'Content-Type': contentType ?? 'application/json',
       },
-      //   paramsSerializer,
       url,
       method,
     });
@@ -39,7 +29,3 @@ export async function fmAxios<T>(options: FMAxiosOptions) {
     throw new Error(err.message);
   }
 }
-
-// export function paramsSerializer(params: any) {
-//   return qs.stringify(params, { arrayFormat: 'comma' });
-// }
