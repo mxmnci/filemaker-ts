@@ -1,9 +1,12 @@
-type FilemakerDataApiOptions = {};
+import { Http } from './helpers/Http';
 
-export class FileMakerDataApi {
-  private http: Http;
+export const test = () => {
+  const http = new Http({
+    host: 'https://crm.primesolarsolutions.com',
+    database: 'Prime_Solar',
+    password: '#BDxfy6dXsE6k%AR3cJ&!ejGP',
+    user: 'export@primehomesolutions.com',
+  });
 
-  constructor(options?: FilemakerDataApiOptions) {
-    this.http = new Http(options?.accessToken ?? '');
-  }
-}
+  console.log(http.get('/Leads_DAPI/records/1'));
+};
