@@ -1,11 +1,13 @@
-import { Http } from '../helpers/Http';
+import { FilemakerDataAPI } from "..";
 
 export class RecordAPI {
-  private http;
+  private fm: FilemakerDataAPI;
 
-  constructor(http: Http) {
-    this.http = http;
+  constructor(fm: FilemakerDataAPI) {
+    this.fm = fm;
   }
 
-  create(json) {}
+  // public async getRecord() {
+  //   return this.fm.get()
+  // }
 }

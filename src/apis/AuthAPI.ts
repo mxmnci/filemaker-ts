@@ -1,45 +1,47 @@
-import { encodeToBase64 } from '../helpers/encodeToBase64';
-import { Http } from '../helpers/Http';
+import { generateEncodedAuthString } from '../helpers/encode';
 import { FMRequestBody } from '../types/FMRequestBody';
+import { fmAxios } from '../helpers/fmAxios';
+import { FMAuthMethod } from '../types/FMAxios';
+import { FilemakerDataAPI } from '..';
 
 export class AuthAPI {
-  private http: Http;
+  private fm;
 
-  constructor(http: Http) {
-    this.http = http;
+  constructor(fm: FilemakerDataAPI) {
+    this.fm = fm;
   }
 
   /**
    * Login to the Filemaker Server Data API
-   * @param auth
    * @returns {Promise<string>} Promise resolved with the auth token
+   * @param username
+   * @param password
    */
-  async login(user: string, password: string): Promise<string> {
-    if (!user || !password) {
+  async login(username: string, password: string): Promise<string> {
+    if (!username || !password) {
       throw new Error('Invalid login credentials');
     }
 
-    const encodedUserAndPassword = encodeToBase64(`${user}:${password}`);
-
-    // * Overwrite the authorization header during login to use basic auth
-    const { messages, response } = await this.http.post<FMRequestBody>(
-      '/sessions',
-      {
-        headers: {
-          Authorization: `Basic ${encodedUserAndPassword}`,
-          'Content-Type': 'application/json',
-        },
-      }
+    const encodedUserAndPassword = generateEncodedAuthString(
+      username,
+      password
     );
 
-    console.log(response);
+    // * Overwrite the authorization header during login to use basic auth
+    const { messages, response } = await fmAxios<FMRequestBody>({
+      baseURL: this.fm.getBaseURL(),
+      url: `/sessions`,
+      method: 'POST',
+      auth: {
+        method: FMAuthMethod.BASIC,
+        token: encodedUserAndPassword,
+      },
+    });
 
     if (!messages || messages[0].code !== '0') {
       throw new Error('Unable to authenticate');
     }
 
-    const token = response.token as string;
-
-    return token;
+    return response.token as string;
   }
 }

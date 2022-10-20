@@ -12,7 +12,7 @@
   },
   "scripts": {
     "start": "tsdx watch",
-    "dev": "ts-node src/index.ts",
+    "dev": "nodemon src/index.ts",
     "build": "tsdx build",
     "test": "tsdx test",
     "lint": "tsdx lint",
@@ -46,13 +46,15 @@
   ],
   "devDependencies": {
     "@size-limit/preset-small-lib": "^8.0.1",
+    "@types/node": "^18.11.0",
     "@types/qs": "^6.9.7",
     "husky": "^8.0.1",
+    "nodemon": "^2.0.20",
     "size-limit": "^8.0.1",
+    "ts-node": "^10.9.1",
     "tsdx": "^0.14.1",
     "tslib": "^2.4.0",
-    "typescript": "^4.8.2",
-    "ts-node": "^10.9.1"
+    "typescript": "^4.8.2"
   },
   "dependencies": {
     "axios": "^0.27.2",

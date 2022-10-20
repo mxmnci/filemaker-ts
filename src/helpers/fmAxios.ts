@@ -1,43 +1,35 @@
-import axios, { AxiosError, AxiosRequestConfig, Method } from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
+import { FMAuth, FMAxiosParams } from '../types/FMAxios';
 
-export type FMAxiosConfig = AxiosRequestConfig & { contentType?: string };
+export async function fmAxios<T>(params: FMAxiosParams) {
+  const { baseURL, url, method, auth, config } = params;
+  const { contentType, ...axiosConfig } = config ?? {};
 
-export async function fmAxios<T>(
-  baseURL: string,
-  url: string,
-  method: Method,
-  authToken: string,
-  config?: FMAxiosConfig
-) {
-  try {
-    const { contentType, ...axiosConfig } = config ?? {};
+  const request: AxiosRequestConfig = {
+    baseURL,
+    url,
+    method,
+    headers: {
+      Authorization: getAuthString(auth),
+      'Content-Type': contentType ?? 'application/json',
+    },
+    ...axiosConfig,
+  };
 
-    if (!authToken && !axiosConfig.headers) {
-      throw new Error('Missing auth token or custom header');
-    }
+  const response = await axios(request);
 
-    const request: AxiosRequestConfig = {
-      baseURL,
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-        'Content-Type': contentType ?? 'application/json',
-      },
-      url,
-      method,
-      ...axiosConfig,
-    };
+  return response.data as T;
+}
 
-    console.log(
-      `${method} - ${baseURL}${url}\n${JSON.stringify(request)}`,
-      null,
-      '\t'
-    );
+function getAuthString(auth: FMAuth): string {
+  switch (auth.method) {
+    case 'BASIC':
+      return `Basic ${auth.token}`;
 
-    const response = await axios(request);
+    case 'BEARER':
+      return `Bearer ${auth.token}`;
 
-    return response.data as T;
-  } catch (error) {
-    const err = error as AxiosError;
-    throw new Error(err.message);
+    default:
+      throw new Error('Invalid auth type');
   }
 }
