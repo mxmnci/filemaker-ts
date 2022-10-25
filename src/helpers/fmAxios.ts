@@ -1,14 +1,17 @@
-import axios, { AxiosRequestConfig } from 'axios';
-import { FMAuth, FMAxiosParams } from '../types/FMAxios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { FMAuth, FMAxiosParams } from '../types/response/FMAxios';
 
-export async function fmAxios<T>(params: FMAxiosParams) {
-  const { baseURL, url, method, auth, config } = params;
+export async function fmAxios<ResponseType, RequestDataType = any>(
+  params: FMAxiosParams<RequestDataType>
+) {
+  const { baseURL, url, method, auth, data, config } = params;
   const { contentType, ...axiosConfig } = config ?? {};
 
-  const request: AxiosRequestConfig = {
+  const request: AxiosRequestConfig<RequestDataType> = {
     baseURL,
     url,
     method,
+    data,
     headers: {
       Authorization: getAuthString(auth),
       'Content-Type': contentType ?? 'application/json',
@@ -16,9 +19,9 @@ export async function fmAxios<T>(params: FMAxiosParams) {
     ...axiosConfig,
   };
 
-  const response = await axios(request);
+  const response: AxiosResponse<ResponseType> = await axios(request);
 
-  return response.data as T;
+  return response.data;
 }
 
 function getAuthString(auth: FMAuth): string {
@@ -28,6 +31,9 @@ function getAuthString(auth: FMAuth): string {
 
     case 'BEARER':
       return `Bearer ${auth.token}`;
+
+    case 'NONE':
+      return '';
 
     default:
       throw new Error('Invalid auth type');

@@ -1,8 +1,9 @@
 import { generateEncodedAuthString } from '../helpers/encode';
-import { FMRequestBody } from '../types/FMRequestBody';
 import { fmAxios } from '../helpers/fmAxios';
-import { FMAuthMethod } from '../types/FMAxios';
+import { FMAuthMethod } from '../types/response/FMAxios';
 import { FilemakerDataAPI } from '..';
+import { AuthResponse } from '../types/response/AuthResponse';
+import { EmptyResponse } from '../types/response/EmptyResponse';
 
 export class AuthAPI {
   private fm;
@@ -17,7 +18,7 @@ export class AuthAPI {
    * @param username
    * @param password
    */
-  async login(username: string, password: string): Promise<string> {
+  public async login(username: string, password: string): Promise<string> {
     if (!username || !password) {
       throw new Error('Invalid login credentials');
     }
@@ -27,9 +28,9 @@ export class AuthAPI {
       password
     );
 
-    // * Overwrite the authorization header during login to use basic auth
-    const { messages, response } = await fmAxios<FMRequestBody>({
-      baseURL: this.fm.getBaseURL(),
+    // * Switch to BASIC authorization method during login
+    const { messages, response } = await fmAxios<AuthResponse>({
+      baseURL: this.fm.getBaseURL({ withoutLayout: true }),
       url: `/sessions`,
       method: 'POST',
       auth: {
@@ -43,5 +44,18 @@ export class AuthAPI {
     }
 
     return response.token as string;
+  }
+
+  public async logout() {
+    const response = await fmAxios<EmptyResponse>({
+      baseURL: this.fm.getBaseURL({ withoutLayout: true }),
+      url: `/sessions/${await this.fm.getAuthToken()}`,
+      method: 'DELETE',
+      auth: {
+        method: FMAuthMethod.NONE,
+      },
+    });
+
+    return response;
   }
 }

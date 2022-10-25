@@ -1,10 +1,12 @@
 import { generateEncodedAuthString } from './helpers/encode';
 import { fmAxios } from './helpers/fmAxios';
-import { FMAuthMethod, FMAxiosConfig } from './types/FMAxios';
+import { FMAuthMethod, FMAxiosConfig } from './types/response/FMAxios';
 import { AuthAPI } from './apis/AuthAPI';
-import { FMRequestBody } from './types/FMRequestBody';
 
-import * as dotenv from "dotenv"
+import * as dotenv from 'dotenv';
+import { RecordAPI } from './apis/RecordAPI';
+import { Method } from 'axios';
+import { FindAPI } from './apis/FindAPI';
 dotenv.config();
 
 type FilemakerDataAPIOptions = {
@@ -15,19 +17,25 @@ type FilemakerDataAPIOptions = {
   password: string;
 };
 
+type HttpConfig = {
+  axios?: FMAxiosConfig;
+  withoutLayout?: boolean;
+  noAuth?: boolean;
+};
+
 export class FilemakerDataAPI {
   private host: string;
   private database: string;
   private layout: string;
   private username: string;
   private password: string;
-  private baseURL: string;
 
   private authToken: string;
   private tokenExpired: boolean;
 
   public auth: AuthAPI;
-  // public records: RecordAPI;
+  public records: RecordAPI;
+  public find: FindAPI;
 
   private authTimeout: NodeJS.Timeout;
 
@@ -37,14 +45,14 @@ export class FilemakerDataAPI {
     this.layout = options.layout;
     this.username = options.username;
     this.password = options.password;
-    this.baseURL = `${this.host}/fmi/data/v1/databases/${this.database}`;
 
     this.authToken = generateEncodedAuthString(this.username, this.password);
     this.authTimeout = this.createAuthTimeout();
     this.tokenExpired = true;
 
     this.auth = new AuthAPI(this);
-    // this.records = new RecordAPI(this);
+    this.records = new RecordAPI(this);
+    this.find = new FindAPI(this);
   }
 
   public getHost() {
@@ -59,8 +67,12 @@ export class FilemakerDataAPI {
     return this.layout;
   }
 
-  public getBaseURL() {
-    return this.baseURL;
+  public getBaseURL({ withoutLayout = false } = {}) {
+    if (withoutLayout) {
+      return `${this.host}/fmi/data/v1/databases/${this.database}`;
+    }
+
+    return `${this.host}/fmi/data/v1/databases/${this.database}/layouts/${this.layout}`;
   }
 
   public setHost(host: string) {
@@ -75,64 +87,64 @@ export class FilemakerDataAPI {
     this.layout = layout;
   }
 
-  public setBaseURL(baseURL: string) {
-    this.baseURL = baseURL;
-  }
-
   public setAuthToken(authToken: string) {
     this.authToken = authToken;
   }
 
-  public async get<T>(url: string, config?: FMAxiosConfig) {
-    return fmAxios<T>({
-      baseURL: this.baseURL,
+  private async http<ResponseType, RequestDataType>(
+    url: string,
+    method: Method,
+    data?: RequestDataType,
+    config?: HttpConfig
+  ) {
+    return fmAxios<ResponseType, RequestDataType>({
+      baseURL: this.getBaseURL({ withoutLayout: config?.withoutLayout }),
       url,
-      method: 'GET',
+      method,
+      data,
       auth: {
         method: FMAuthMethod.BEARER,
         token: await this.getAuthToken(),
       },
-      config,
+      config: config ? config.axios : undefined,
     });
   }
 
-  public async post<T>(url: string, config?: FMAxiosConfig) {
-    return fmAxios<T>({
-      baseURL: this.baseURL,
-      url,
-      method: 'POST',
-      auth: {
-        method: FMAuthMethod.BEARER,
-        token: await this.getAuthToken(),
-      },
-      config,
-    });
+  public async get<ResponseType, RequestDataType = any>(
+    url: string,
+    data?: RequestDataType,
+    config?: HttpConfig
+  ) {
+    return this.http<ResponseType, RequestDataType>(url, 'GET', data, config);
   }
 
-  public async put<T>(url: string, config?: FMAxiosConfig) {
-    return fmAxios<T>({
-      baseURL: this.baseURL,
-      url,
-      method: 'PUT',
-      auth: {
-        method: FMAuthMethod.BEARER,
-        token: await this.getAuthToken(),
-      },
-      config,
-    });
+  public async post<ResponseType, RequestDataType = any>(
+    url: string,
+    data?: RequestDataType,
+    config?: HttpConfig
+  ) {
+    return this.http<ResponseType, RequestDataType>(url, 'POST', data, config);
   }
 
-  public async delete<T>(url: string, config?: FMAxiosConfig) {
-    return fmAxios<T>({
-      baseURL: this.baseURL,
+  public async put<ResponseType, RequestDataType = any>(
+    url: string,
+    data?: RequestDataType,
+    config?: HttpConfig
+  ) {
+    return this.http<ResponseType, RequestDataType>(url, 'PUT', data, config);
+  }
+
+  public async delete<ResponseType, RequestDataType = any>(
+    url: string,
+    data?: RequestDataType,
+    config?: HttpConfig
+  ) {
+    return this.http<ResponseType, RequestDataType>(
       url,
-      method: 'DELETE',
-      auth: {
-        method: FMAuthMethod.BEARER,
-        token: await this.getAuthToken(),
-      },
-      config,
-    });
+      'DELETE',
+      data,
+      config
+    );
   }
 
   /**
@@ -144,50 +156,20 @@ export class FilemakerDataAPI {
     if (this.tokenExpired) {
       console.log('Getting a new auth token...');
       this.authToken = await this.auth.login(this.username, this.password);
+
       console.log(`Successfully logged in!\nToken: ${this.authToken}`);
       this.tokenExpired = false;
     } else {
-      console.log('Refreshing auth token...');
       this.authTimeout.refresh();
       console.log(`Token refreshed!\nToken: ${this.authToken}`);
     }
-
 
     return this.authToken;
   }
 
   private createAuthTimeout() {
     return setTimeout(() => {
-      this.tokenExpired = true
+      this.tokenExpired = true;
     }, 1000 * 60 * 15);
   }
 }
-
-const host = process.env.HOST
-const database = process.env.DATABASE
-const username = process.env.USERNAME
-const password = process.env.PASSWORD
-const layout = process.env.LAYOUT
-
-if (!host || !database || !username || !password || !layout) {
-  throw new Error("Env vars not defined")
-}
-
-export const test = async () => {
-  const http = new FilemakerDataAPI({
-    host,
-    database,
-    username,
-    password,
-    layout
-  });
-
-  try {
-    const response = await http.get<FMRequestBody>('/layouts/Files_DAPI/records/6068');
-    console.log(response.response.data);
-  } catch (err: any) {
-    console.error(err.response.data)
-  }
-};
-
-test();

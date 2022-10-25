@@ -5,17 +5,19 @@ export type FMAxiosConfig = AxiosRequestConfig & { contentType?: string };
 export enum FMAuthMethod {
   BASIC = 'BASIC',
   BEARER = 'BEARER',
+  NONE = 'NONE',
 }
 
 export type FMAuth = {
   method: FMAuthMethod;
-  token: string;
+  token?: string;
 };
 
-export type FMAxiosParams = {
+export type FMAxiosParams<T> = {
   baseURL: string;
   url: string;
   method: Method;
+  data?: T;
   auth: FMAuth;
   config?: FMAxiosConfig;
 };
