@@ -65,6 +65,23 @@ Usage examples will be published soon! The wrapper is being created on an as-nee
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## Roadmap
+- [X] Log in to database
+- [ ] Create a record
+- [ ] Duplicate a record
+- [x] Perform a find request
+- [ ] Upload container data
+- [x] Get a single record
+- [x] Get a range of records
+- [ ] Get metadata
+- [ ] Run a script
+- [ ] Edit a record
+- [ ] Set global field values
+- [x] Log out of a database
+- [ ] Delete a record
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Contributing
 
 Any contributions you make are **greatly appreciated**!
