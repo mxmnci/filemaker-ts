@@ -12,7 +12,7 @@
   },
   "scripts": {
     "start": "tsdx watch",
-    "dev": "nodemon test/test.ts",
+    "dev": "ts-node --project tsconfig.dev.json test/test.ts",
     "build": "tsdx build",
     "test": "tsdx test",
     "lint": "tsdx lint",
@@ -48,8 +48,8 @@
     "@size-limit/preset-small-lib": "^8.0.1",
     "@types/node": "^18.11.0",
     "@types/qs": "^6.9.7",
+    "dotenv": "^16.0.3",
     "husky": "^8.0.1",
-    "nodemon": "^2.0.20",
     "size-limit": "^8.0.1",
     "ts-node": "^10.9.1",
     "tsdx": "^0.14.1",
@@ -58,7 +58,6 @@
   },
   "dependencies": {
     "axios": "^0.27.2",
-    "dotenv": "^16.0.3",
     "qs": "^6.11.0"
   }
 }

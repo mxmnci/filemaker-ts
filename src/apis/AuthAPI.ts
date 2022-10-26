@@ -6,7 +6,7 @@ import { AuthResponse } from '../types/response/AuthResponse';
 import { EmptyResponse } from '../types/response/EmptyResponse';
 
 export class AuthAPI {
-  private fm;
+  private fm: FilemakerDataAPI;
 
   constructor(fm: FilemakerDataAPI) {
     this.fm = fm;
