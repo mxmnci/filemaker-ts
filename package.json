@@ -31,16 +31,16 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "fmnode",
+  "name": "filemaker-ts",
   "author": "Max Monciardini",
-  "module": "dist/fmnode.esm.js",
+  "module": "dist/filemaker-ts.esm.js",
   "size-limit": [
     {
-      "path": "dist/fmnode.cjs.production.min.js",
+      "path": "dist/filemaker-ts.cjs.production.min.js",
       "limit": "10 KB"
     },
     {
-      "path": "dist/fmnode.esm.js",
+      "path": "dist/filemaker-ts.esm.js",
       "limit": "10 KB"
     }
   ],
