@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { FMAuth, FMAxiosParams } from '../types/response/FMAxios';
+import { FMAuth, FMAxiosParams } from '../types/FMAxios.types';
 
 export async function fmAxios<ResponseType, RequestDataType = any>(
   params: FMAxiosParams<RequestDataType>

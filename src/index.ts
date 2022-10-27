@@ -1,27 +1,17 @@
 import { generateEncodedAuthString } from './helpers/encode';
 import { fmAxios } from './helpers/fmAxios';
-import { FMAuthMethod, FMAxiosConfig } from './types/response/FMAxios';
+import { FMAuthMethod } from './types/FMAxios.types';
 import { AuthAPI } from './apis/AuthAPI';
 
 import * as dotenv from 'dotenv';
 import { RecordAPI } from './apis/RecordAPI';
 import { Method } from 'axios';
 import { FindAPI } from './apis/FindAPI';
+import {
+  FilemakerDataAPIOptions,
+  HttpConfig,
+} from './types/FilemakerDataApi.types';
 dotenv.config();
-
-type FilemakerDataAPIOptions = {
-  host: string;
-  database: string;
-  layout: string;
-  username: string;
-  password: string;
-};
-
-type HttpConfig = {
-  axios?: FMAxiosConfig;
-  withoutLayout?: boolean;
-  noAuth?: boolean;
-};
 
 export class FilemakerDataAPI {
   private host: string;

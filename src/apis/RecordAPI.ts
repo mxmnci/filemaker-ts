@@ -1,7 +1,7 @@
 import QueryString from 'qs';
 import { FilemakerDataAPI } from '..';
 import { EntityResponse } from '../types/response/EntityResponse';
-import { GetRecordRangeParams } from '../types/RecordAPI';
+import { GetRecordRangeParams } from '../types/RecordAPI.types';
 
 export class RecordAPI {
   private fm: FilemakerDataAPI;
