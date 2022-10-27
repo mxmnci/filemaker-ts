@@ -1,5 +1,5 @@
 type Query<T> = {
-  [key in keyof T]: string;
+  [key in keyof T]: T[key];
 };
 
 export type FindRequestData<T> = {
