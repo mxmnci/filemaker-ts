@@ -1,7 +1,4 @@
-import { FilemakerDataAPI } from '..';
-import { FindRequestData } from '../types/request/FindRequestData';
-import { EntityResponse } from '../types/response/EntityResponse';
-
+import { EntityResponse, FilemakerDataAPI, FindRequestData } from '..';
 export class FindAPI {
   private fm: FilemakerDataAPI;
 

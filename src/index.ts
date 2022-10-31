@@ -7,11 +7,10 @@ import * as dotenv from 'dotenv';
 import { RecordAPI } from './apis/RecordAPI';
 import { Method } from 'axios';
 import { FindAPI } from './apis/FindAPI';
-import {
-  FilemakerDataAPIOptions,
-  HttpConfig,
-} from './types/FilemakerDataApi.types';
+import { FilemakerDataAPIOptions, HttpConfig } from './types/index.types';
 dotenv.config();
+
+export * from './types/index.types';
 
 export class FilemakerDataAPI {
   private host: string;
