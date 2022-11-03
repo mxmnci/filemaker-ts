@@ -150,7 +150,6 @@ export class FilemakerDataAPI {
       this.tokenExpired = false;
     } else {
       this.authTimeout.refresh();
-      console.log(`Token refreshed!\nToken: ${this.authToken}`);
     }
 
     return this.authToken;
