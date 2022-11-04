@@ -1,35 +1,22 @@
 import { FilemakerDataAPI } from '../src/index';
+import { getConfig } from './config';
 
-const host = process.env.HOST;
-const database = process.env.DATABASE;
-const username = process.env.USERNAME;
-const password = process.env.PASSWORD;
-const layout = process.env.LAYOUT;
+const config = getConfig();
 
-if (!host || !database || !username || !password || !layout) {
-  throw new Error('Env vars not defined');
-}
-
-type Client = {
-  first_name: string;
-  last_name: string;
+type Sale = {
+  job_number: string;
 };
 
 export const test = async () => {
-  const fm = new FilemakerDataAPI({
-    host,
-    database,
-    username,
-    password,
-    layout,
-  });
+  const fm = new FilemakerDataAPI(config);
+  fm.setLayout('Sales_DAPI');
 
   try {
-    const { response } = await fm.find.find<Client>({
-      query: [{ first_name: 'john' }],
+    const { response } = await fm.find.find<Sale>({
+      query: [{ job_number: '3000' }],
     });
 
-    console.log(response.data[0].fieldData);
+    console.log(JSON.stringify(response.data, null, 4));
   } catch (err) {
     console.log(err as any);
   }
