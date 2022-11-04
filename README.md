@@ -66,19 +66,20 @@ Usage examples will be published soon! The wrapper is being created on an as-nee
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Roadmap
-- [X] Log in to database
-- [ ] Create a record
-- [ ] Duplicate a record
-- [x] Perform a find request
-- [ ] Upload container data
+
+- [x] Log in to database
 - [x] Get a single record
 - [x] Get a range of records
+- [x] Create a record
+- [x] Edit a record
+- [x] Delete a record
+- [x] Perform a find request
+- [x] Log out of a database
+- [ ] Duplicate a record
+- [ ] Upload container data
 - [ ] Get metadata
 - [ ] Run a script
-- [ ] Edit a record
 - [ ] Set global field values
-- [x] Log out of a database
-- [ ] Delete a record
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
