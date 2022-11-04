@@ -107,7 +107,7 @@ export class FilemakerDataAPI {
     return this.http<ResponseType, RequestDataType>(url, 'GET', data, config);
   }
 
-  public async post<ResponseType, RequestDataType = any>(
+  public async post<ResponseType, RequestDataType>(
     url: string,
     data?: RequestDataType,
     config?: HttpConfig
@@ -115,12 +115,12 @@ export class FilemakerDataAPI {
     return this.http<ResponseType, RequestDataType>(url, 'POST', data, config);
   }
 
-  public async put<ResponseType, RequestDataType = any>(
+  public async patch<ResponseType, RequestDataType>(
     url: string,
     data?: RequestDataType,
     config?: HttpConfig
   ) {
-    return this.http<ResponseType, RequestDataType>(url, 'PUT', data, config);
+    return this.http<ResponseType, RequestDataType>(url, 'PATCH', data, config);
   }
 
   public async delete<ResponseType, RequestDataType = any>(

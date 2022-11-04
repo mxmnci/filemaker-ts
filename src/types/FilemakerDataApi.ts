@@ -16,8 +16,3 @@ export type HttpConfig = {
   withoutLayout?: boolean;
   noAuth?: boolean;
 };
-
-export type GetRecordRangeParams = {
-  offset?: number;
-  limit?: number;
-};

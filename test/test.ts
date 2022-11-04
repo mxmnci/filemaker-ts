@@ -15,21 +15,39 @@ type Client = {
   last_name: string;
 };
 
-export const test = async () => {
-  const fm = new FilemakerDataAPI({
-    host,
-    database,
-    username,
-    password,
-    layout,
-  });
+const fm = new FilemakerDataAPI({
+  host,
+  database,
+  username,
+  password,
+  layout,
+});
 
+export const test = async () => {
   try {
-    const { response } = await fm.find.find<Client>({
-      query: [{ first_name: 'john' }],
+    const {
+      response: { recordId },
+    } = await fm.records.createRecord<Client>({
+      first_name: 'Mr. Test',
+      last_name: 'Fitzgerald',
     });
 
-    console.log(response.data[0].fieldData);
+    const getResponse1 = await fm.records.getRecord<Client>(recordId);
+
+    console.log(getResponse1.response.data);
+    console.log(recordId);
+
+    await fm.records.updateRecord<Client>(recordId, {
+      last_name: 'Weaver',
+    });
+
+    const getResponse2 = await fm.records.getRecord<Client>(recordId);
+
+    console.log(getResponse2.response.data);
+
+    const { messages } = await fm.records.deleteRecord(recordId);
+
+    console.log(messages);
   } catch (err) {
     console.log(err as any);
   }
