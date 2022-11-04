@@ -21,3 +21,13 @@ export type FMAxiosParams<T> = {
   auth: FMAuth;
   config?: FMAxiosConfig;
 };
+
+export enum FMErrorCode {
+  BAD_REQUEST = '400',
+  UNAUTHORIZED = '401',
+  FORBIDDEN = '403',
+  NOT_FOUND = '404',
+  METHOD_NOT_ALLOWED = '405',
+  UNSUPPORTED_MEDIA_TYPE = '415',
+  FILEMAKER_ERROR = '500',
+}

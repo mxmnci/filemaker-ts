@@ -1,5 +1,8 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { FMAuth, FMAxiosParams } from '../types/FMAxios.types';
+import { FMAxiosParams } from '../types/FMAxios.types';
+import { EmptyResponse } from '../types/response.types';
+import { getAuthString } from './getAuthString';
+import { FilemakerDataAPIError } from './errors';
 
 export async function fmAxios<ResponseType, RequestDataType = any>(
   params: FMAxiosParams<RequestDataType>
@@ -19,23 +22,18 @@ export async function fmAxios<ResponseType, RequestDataType = any>(
     ...axiosConfig,
   };
 
-  const response: AxiosResponse<ResponseType> = await axios(request);
+  try {
+    const response: AxiosResponse<ResponseType> = await axios(request);
+    return response.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      const response = err.response as AxiosResponse<EmptyResponse>;
+      const errorCode = response.data.messages[0].code;
+      const errorMessage = response.data.messages[0].message;
 
-  return response.data;
-}
-
-function getAuthString(auth: FMAuth): string {
-  switch (auth.method) {
-    case 'BASIC':
-      return `Basic ${auth.token}`;
-
-    case 'BEARER':
-      return `Bearer ${auth.token}`;
-
-    case 'NONE':
-      return '';
-
-    default:
-      throw new Error('Invalid auth type');
+      throw new FilemakerDataAPIError(errorCode, errorMessage);
+    }
   }
+
+  throw new Error('An unexpected error occurred');
 }
