@@ -1,8 +1,8 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { FMAxiosParams } from '../types/FMAxios.types';
-import { EmptyResponse } from '../types/response.types';
+import { FMAxiosParams } from '../types/FMAxios';
+import { EmptyResponse } from '../types/response';
 import { getAuthString } from './getAuthString';
-import { FilemakerDataAPIError } from './errors';
+import { FilemakerDataAPIException } from '../types/exceptions';
 
 export async function fmAxios<ResponseType, RequestDataType = any>(
   params: FMAxiosParams<RequestDataType>
@@ -31,7 +31,7 @@ export async function fmAxios<ResponseType, RequestDataType = any>(
       const errorCode = response.data.messages[0].code;
       const errorMessage = response.data.messages[0].message;
 
-      throw new FilemakerDataAPIError(errorCode, errorMessage);
+      throw new FilemakerDataAPIException(errorCode, errorMessage);
     }
   }
 

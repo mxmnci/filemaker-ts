@@ -1,7 +1,7 @@
-import { FMAxiosConfig } from './FMAxios.types';
+import { FMAxiosConfig } from './FMAxios';
 
-export * from './request.types';
-export * from './response.types';
+export * from './request';
+export * from './response';
 
 export type FilemakerDataAPIOptions = {
   host: string;

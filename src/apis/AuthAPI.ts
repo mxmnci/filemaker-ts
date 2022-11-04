@@ -1,6 +1,6 @@
 import { generateEncodedAuthString } from '../helpers/encode';
 import { fmAxios } from '../helpers/fmAxios';
-import { FMAuthMethod } from '../types/FMAxios.types';
+import { FMAuthMethod } from '../types/FMAxios';
 import { AuthResponse, EmptyResponse, FilemakerDataAPI } from '..';
 
 export class AuthAPI {
