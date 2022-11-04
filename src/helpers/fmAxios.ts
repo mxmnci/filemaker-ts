@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { FMAxiosParams } from '../types/FMAxios';
 import { EmptyResponse } from '../types/response';
 import { getAuthString } from './getAuthString';
-import { FilemakerDataAPIException } from '../types/exceptions';
+import { handleDataAPIException } from './handleDataAPIException';
 
 export async function fmAxios<ResponseType, RequestDataType = any>(
   params: FMAxiosParams<RequestDataType>
@@ -27,11 +27,7 @@ export async function fmAxios<ResponseType, RequestDataType = any>(
     return response.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-      const response = err.response as AxiosResponse<EmptyResponse>;
-      const errorCode = response.data.messages[0].code;
-      const errorMessage = response.data.messages[0].message;
-
-      throw new FilemakerDataAPIException(errorCode, errorMessage);
+      handleDataAPIException(err.response as AxiosResponse<EmptyResponse>);
     }
   }
 
