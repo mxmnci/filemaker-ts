@@ -12,9 +12,11 @@ export class FindAPI {
       throw new FilemakerTSException('Please define at least one query field');
     }
 
-    return this.fm.post<EntityResponse<Entity>, FindRequestParams<Entity>>(
-      '/_find',
-      findRequest
-    );
+    const response = await this.fm.post<
+      EntityResponse<Entity>,
+      FindRequestParams<Entity>
+    >('/_find', findRequest);
+
+    return response;
   }
 }

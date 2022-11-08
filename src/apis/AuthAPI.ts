@@ -27,7 +27,7 @@ export class AuthAPI {
     );
 
     // * Switch to BASIC authorization method during login
-    const { messages, response } = await fmAxios<AuthResponse>({
+    const response = await fmAxios<AuthResponse>({
       baseURL: this.fm.getBaseURL({ withoutLayout: true }),
       url: `/sessions`,
       method: 'POST',
@@ -37,11 +37,11 @@ export class AuthAPI {
       },
     });
 
-    if (!messages || messages[0].code !== '0') {
+    if (!response) {
       throw new Error('Unable to authenticate');
     }
 
-    return response.token as string;
+    return response.response.token as string;
   }
 
   public async logout() {

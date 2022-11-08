@@ -27,9 +27,11 @@ export async function fmAxios<ResponseType, RequestDataType = any>(
     return response.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-      handleDataAPIException(err.response as AxiosResponse<EmptyResponse>);
+      return handleDataAPIException(
+        err.response as AxiosResponse<EmptyResponse>
+      );
     }
-  }
 
-  throw new Error('An unexpected error occurred');
+    throw new Error('An unexpected error occurred');
+  }
 }
