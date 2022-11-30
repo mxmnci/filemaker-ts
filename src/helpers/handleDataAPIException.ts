@@ -1,5 +1,9 @@
 import { AxiosResponse } from 'axios';
-import { EmptyResponse, FilemakerDataAPIException } from '../types';
+import {
+  EmptyResponse,
+  FilemakerDataAPIException,
+  FilemakerTSException,
+} from '../types';
 
 export function isFilemakerDataAPIException(
   x: unknown
@@ -11,9 +15,7 @@ export function isFilemakerDataAPIException(
   return false;
 }
 
-export function isFilemakerTSException(
-  x: unknown
-): x is FilemakerDataAPIException {
+export function isFilemakerTSException(x: unknown): x is FilemakerTSException {
   if (x && typeof x === 'object' && 'name' in x) {
     return true;
   }
