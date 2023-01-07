@@ -58,10 +58,6 @@ export const test = async () => {
   } catch (err) {
     console.log(err as any);
   }
-
-  await fm.auth.logout();
-
-  console.log('Successfully logged out!');
 };
 
 test();

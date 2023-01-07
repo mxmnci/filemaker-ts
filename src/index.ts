@@ -1,4 +1,3 @@
-import { generateEncodedAuthString } from './helpers/encode';
 import { fmAxios } from './helpers/fmAxios';
 import { FMAuthMethod } from './types/FMAxios';
 import { AuthAPI } from './apis/AuthAPI';
@@ -19,14 +18,9 @@ export class FilemakerDataAPI {
   private username: string;
   private password: string;
 
-  private authToken: string;
-  private tokenExpired: boolean;
-
   public auth: AuthAPI;
   public records: RecordAPI;
   public find: FindAPI;
-
-  private authTimeout: NodeJS.Timeout;
 
   constructor(options: FilemakerDataAPIOptions) {
     this.host = options.host;
@@ -34,10 +28,6 @@ export class FilemakerDataAPI {
     this.layout = options.layout;
     this.username = options.username;
     this.password = options.password;
-
-    this.authToken = generateEncodedAuthString(this.username, this.password);
-    this.authTimeout = this.createAuthTimeout();
-    this.tokenExpired = true;
 
     this.auth = new AuthAPI(this);
     this.records = new RecordAPI(this);
@@ -76,27 +66,29 @@ export class FilemakerDataAPI {
     this.layout = layout;
   }
 
-  public setAuthToken(authToken: string) {
-    this.authToken = authToken;
-  }
-
   private async http<ResponseType, RequestDataType>(
     url: string,
     method: Method,
     data?: RequestDataType,
     config?: HttpConfig
   ) {
-    return fmAxios<ResponseType, RequestDataType>({
+    const accessToken = await this.auth.login(this.username, this.password);
+
+    const response = await fmAxios<ResponseType, RequestDataType>({
       baseURL: this.getBaseURL({ withoutLayout: config?.withoutLayout }),
       url,
       method,
       data,
       auth: {
         method: FMAuthMethod.BEARER,
-        token: await this.getAuthToken(),
+        token: accessToken,
       },
       config: config ? config.axios : undefined,
     });
+
+    await this.auth.logout(accessToken);
+
+    return response;
   }
 
   public async get<ResponseType, RequestDataType = any>(
@@ -134,30 +126,5 @@ export class FilemakerDataAPI {
       data,
       config
     );
-  }
-
-  /**
-   * Refresh the filemaker auth token if it has exceeded the 15 minute timeout
-   * Otherwise, refresh the timeout of the existing token
-   * @returns The auth token
-   */
-  public async getAuthToken() {
-    if (this.tokenExpired) {
-      console.log('Getting a new auth token...');
-      this.authToken = await this.auth.login(this.username, this.password);
-
-      console.log(`Successfully logged in!\nToken: ${this.authToken}`);
-      this.tokenExpired = false;
-    } else {
-      this.authTimeout.refresh();
-    }
-
-    return this.authToken;
-  }
-
-  private createAuthTimeout() {
-    return setTimeout(() => {
-      this.tokenExpired = true;
-    }, 1000 * 60 * 15);
   }
 }

@@ -44,10 +44,10 @@ export class AuthAPI {
     return response.response.token as string;
   }
 
-  public async logout() {
+  public async logout(authToken: string) {
     const response = await fmAxios<EmptyResponse>({
       baseURL: this.fm.getBaseURL({ withoutLayout: true }),
-      url: `/sessions/${await this.fm.getAuthToken()}`,
+      url: `/sessions/${authToken}`,
       method: 'DELETE',
       auth: {
         method: FMAuthMethod.NONE,
