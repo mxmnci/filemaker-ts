@@ -86,8 +86,6 @@ export class FilemakerDataAPI {
       config: config ? config.axios : undefined,
     });
 
-    await this.auth.logout(accessToken);
-
     return response;
   }
 

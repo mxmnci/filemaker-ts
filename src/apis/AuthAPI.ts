@@ -3,11 +3,17 @@ import { fmAxios } from '../helpers/fmAxios';
 import { FMAuthMethod } from '../types/FMAxios';
 import { AuthResponse, EmptyResponse, FilemakerDataAPI } from '..';
 
+const TIME_LIMIT = 1000 * 60 * 15;
+
 export class AuthAPI {
   private fm: FilemakerDataAPI;
+  private accessToken: string | null;
+  private accessTokenTimestamp: number;
 
   constructor(fm: FilemakerDataAPI) {
     this.fm = fm;
+    this.accessToken = null;
+    this.accessTokenTimestamp = 0;
   }
 
   /**
@@ -17,6 +23,16 @@ export class AuthAPI {
    * @param password
    */
   public async login(username: string, password: string): Promise<string> {
+    const isTimeLimitExceeded =
+      Date.now() - this.accessTokenTimestamp < TIME_LIMIT;
+
+    // Use the cached access token if time limit hasn't been exceeded
+    if (!isTimeLimitExceeded && this.accessToken) {
+      this.accessTokenTimestamp = Date.now();
+      return this.accessToken;
+    }
+
+    // Continue with BASIC auth if no cached access token
     if (!username || !password) {
       throw new Error('Invalid login credentials');
     }
@@ -41,7 +57,12 @@ export class AuthAPI {
       throw new Error('Unable to authenticate');
     }
 
-    return response.response.token as string;
+    const accessToken = response.response.token;
+
+    this.accessToken = accessToken;
+    this.accessTokenTimestamp = Date.now();
+
+    return accessToken as string;
   }
 
   public async logout(authToken: string) {
