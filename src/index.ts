@@ -7,12 +7,8 @@ import { RecordAPI } from './apis/RecordAPI';
 import { Method } from 'axios';
 import { FindAPI } from './apis/FindAPI';
 import { FilemakerDataAPIOptions, HttpConfig } from './types';
-import {
-  consoleDebugLogging,
-  fileCombinedLogging,
-  fileErrorLogging,
-  logger,
-} from './logger';
+import { logger } from './logger';
+import winston from 'winston';
 dotenv.config();
 
 export * from './types';
@@ -43,11 +39,28 @@ export class FilemakerDataAPI {
 
     // Configure logging
     if (config?.logDebugToConsole) {
-      logger.add(consoleDebugLogging);
+      logger.add(
+        new winston.transports.Console({
+          level: 'debug',
+          format: winston.format.combine(
+            winston.format.colorize(),
+            winston.format.printf(info => `filemaker-ts: ${info.message}`)
+          ),
+        })
+      );
     } else if (config?.logCombinedToFile) {
-      logger.add(fileCombinedLogging);
+      logger.add(
+        new winston.transports.File({
+          filename: 'combined.log',
+        })
+      );
     } else if (config?.logErrorsToFile) {
-      logger.add(fileErrorLogging);
+      logger.add(
+        new winston.transports.File({
+          filename: 'error.log',
+          level: 'error',
+        })
+      );
     } else {
       logger.silent = true;
     }
