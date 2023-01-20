@@ -44,14 +44,12 @@ export class FilemakerDataAPI {
     // Configure logging
     if (config?.logDebugToConsole) {
       logger.add(consoleDebugLogging);
-    }
-
-    if (config?.logCombinedToFile) {
+    } else if (config?.logCombinedToFile) {
       logger.add(fileCombinedLogging);
-    }
-
-    if (config?.logErrorsToFile) {
+    } else if (config?.logErrorsToFile) {
       logger.add(fileErrorLogging);
+    } else {
+      logger.silent = true;
     }
   }
 

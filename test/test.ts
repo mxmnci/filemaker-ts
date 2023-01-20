@@ -21,9 +21,6 @@ const fm = new FilemakerDataAPI({
   username,
   password,
   layout,
-  config: {
-    logDebugToConsole: true,
-  },
 });
 
 export const test = async () => {
