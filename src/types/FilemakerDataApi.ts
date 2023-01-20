@@ -9,6 +9,11 @@ export type FilemakerDataAPIOptions = {
   layout: string;
   username: string;
   password: string;
+  config?: {
+    logDebugToConsole?: boolean;
+    logCombinedToFile?: boolean;
+    logErrorsToFile?: boolean;
+  };
 };
 
 export type HttpConfig = {

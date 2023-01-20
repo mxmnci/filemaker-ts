@@ -7,6 +7,12 @@ import { RecordAPI } from './apis/RecordAPI';
 import { Method } from 'axios';
 import { FindAPI } from './apis/FindAPI';
 import { FilemakerDataAPIOptions, HttpConfig } from './types';
+import {
+  consoleDebugLogging,
+  fileCombinedLogging,
+  fileErrorLogging,
+  logger,
+} from './logger';
 dotenv.config();
 
 export * from './types';
@@ -32,6 +38,21 @@ export class FilemakerDataAPI {
     this.auth = new AuthAPI(this);
     this.records = new RecordAPI(this);
     this.find = new FindAPI(this);
+
+    const { config } = options;
+
+    // Configure logging
+    if (config?.logDebugToConsole) {
+      logger.add(consoleDebugLogging);
+    }
+
+    if (config?.logCombinedToFile) {
+      logger.add(fileCombinedLogging);
+    }
+
+    if (config?.logErrorsToFile) {
+      logger.add(fileErrorLogging);
+    }
   }
 
   public getHost() {
