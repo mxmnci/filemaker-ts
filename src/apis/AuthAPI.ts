@@ -2,6 +2,7 @@ import { generateEncodedAuthString } from '../helpers/encode';
 import { fmAxios } from '../helpers/fmAxios';
 import { FMAuthMethod } from '../types/FMAxios';
 import { AuthResponse, EmptyResponse, FilemakerDataAPI } from '..';
+import { logger } from '../logger';
 
 const TIME_LIMIT = 1000 * 60 * 15;
 
@@ -23,14 +24,22 @@ export class AuthAPI {
    * @param password
    */
   public async login(username: string, password: string): Promise<string> {
-    const isTimeLimitExceeded =
-      Date.now() - this.accessTokenTimestamp < TIME_LIMIT;
+    const timeElapsedSinceTokenRefresh = Date.now() - this.accessTokenTimestamp;
+
+    logger.debug(
+      `Auth API - Time elapsed since access token refresh: ${timeElapsedSinceTokenRefresh}ms`
+    );
+
+    const isTimeLimitExceeded = timeElapsedSinceTokenRefresh > TIME_LIMIT;
 
     // Use the cached access token if time limit hasn't been exceeded
     if (!isTimeLimitExceeded && this.accessToken) {
+      logger.debug('Auth API - Access token found! Using cached access token.');
       this.accessTokenTimestamp = Date.now();
       return this.accessToken;
     }
+
+    logger.debug('Auth API - Access token not found! Retrieving a new one...');
 
     // Continue with BASIC auth if no cached access token
     if (!username || !password) {

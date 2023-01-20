@@ -21,6 +21,9 @@ const fm = new FilemakerDataAPI({
   username,
   password,
   layout,
+  config: {
+    logDebugToConsole: true,
+  },
 });
 
 export const test = async () => {
@@ -37,9 +40,6 @@ export const test = async () => {
 
     if (!getResponse1) throw new Error('Unable to get record');
 
-    console.log(getResponse1.response.data);
-    console.log(createResponse.response.recordId);
-
     await fm.records.updateRecord<Client>(recordId, {
       last_name: 'Weaver',
     });
@@ -48,13 +48,9 @@ export const test = async () => {
 
     if (!getResponse2) throw new Error('Unable to get record 2');
 
-    console.log(getResponse2.response.data);
-
     const deleteResponse = await fm.records.deleteRecord(recordId);
 
     if (!deleteResponse) throw new Error('Unable to delete records');
-
-    console.log(deleteResponse.messages);
   } catch (err) {
     console.log(err as any);
   }
