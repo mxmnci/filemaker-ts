@@ -9,7 +9,7 @@ export type Sort<T> = {
 };
 
 export type FindRequestParams<T> = {
-  query: Query<Partial<T>>[];
+  query: Query<Partial<T> & { omit?: 'true' | 'false' }>[];
   portal?: string[];
   limit?: string;
   offset?: string;

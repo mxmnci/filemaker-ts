@@ -37,6 +37,10 @@ export const test = async () => {
 
     if (!getResponse1) throw new Error('Unable to get record');
 
+    await fm.find.find<Client>({
+      query: [{ last_name: 'Fitzgerald' }],
+    });
+
     await fm.records.updateRecord<Client>(recordId, {
       last_name: 'Weaver',
     });
