@@ -78,6 +78,11 @@ export class FilemakerDataAPI {
     return this.layout;
   }
 
+  /**
+   * Get the base url for the current host, database and layout
+   * @param options The options to use
+   * @returns The base url
+   */
   public getBaseURL({ withoutLayout = false } = {}) {
     if (withoutLayout) {
       return `${this.host}/fmi/data/v1/databases/${this.database}`;
@@ -98,6 +103,14 @@ export class FilemakerDataAPI {
     this.layout = layout;
   }
 
+  /**
+   * An http request wrapper that handles authentication automatically
+   * @param url The url to send the request to
+   * @param method The http method to use
+   * @param data The data to send with the request
+   * @param config The axios config
+   * @returns The response from the request
+   */
   private async http<ResponseType, RequestDataType>(
     url: string,
     method: Method,

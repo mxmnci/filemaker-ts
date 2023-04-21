@@ -5,14 +5,14 @@ export type Query<T> = {
 
 export type Sort<T> = {
   fieldName: keyof T;
-  sortOrder: 'ascend' | 'descend';
+  sortOrder: 'ascend' | 'descend' | string;
 };
 
 export type FindRequestParams<T> = {
   query: Query<Partial<T> & { omit?: 'true' | 'false' }>[];
   portal?: string[];
   limit?: string;
-  offset?: string;
+  offset?: number;
   sort?: Sort<Partial<T>>[];
 };
 
