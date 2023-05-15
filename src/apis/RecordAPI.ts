@@ -1,21 +1,17 @@
 import QueryString from 'qs';
-import {
-  CreateRecordResponse,
-  EntityResponse,
-  FilemakerDataAPI,
-  GetRecordRangeParams,
-} from '..';
+import { CreateRecordResponse, EntityResponse, GetRecordRangeParams } from '..';
 import {
   CreateRecordRequest,
   EmptyResponse,
   UpdateRecordRequest,
   UpdateRecordResponse,
 } from '../types';
+import { FileMakerRequestHandler } from '../request-handler';
 
 export class RecordAPI {
-  private fm: FilemakerDataAPI;
+  private fm: FileMakerRequestHandler;
 
-  constructor(fm: FilemakerDataAPI) {
+  constructor(fm: FileMakerRequestHandler) {
     this.fm = fm;
   }
 

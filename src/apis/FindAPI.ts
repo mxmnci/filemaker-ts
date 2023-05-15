@@ -1,9 +1,10 @@
-import { EntityResponse, FilemakerDataAPI, FindRequestParams } from '..';
+import { EntityResponse, FindRequestParams } from '..';
+import { FileMakerRequestHandler } from '../request-handler';
 import { FilemakerTSException } from '../types/exceptions';
 export class FindAPI {
-  private fm: FilemakerDataAPI;
+  private fm: FileMakerRequestHandler;
 
-  constructor(fm: FilemakerDataAPI) {
+  constructor(fm: FileMakerRequestHandler) {
     this.fm = fm;
   }
 

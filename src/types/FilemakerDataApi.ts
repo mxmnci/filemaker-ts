@@ -14,6 +14,8 @@ export type FilemakerDataAPIOptions = {
     logCombinedToFile?: boolean;
     logErrorsToFile?: boolean;
   };
+  requestMiddleware?: RequestMiddleware;
+  responseMiddleware?: ResponseMiddleware;
 };
 
 export type HttpConfig = {
@@ -21,3 +23,6 @@ export type HttpConfig = {
   withoutLayout?: boolean;
   noAuth?: boolean;
 };
+
+export type RequestMiddleware = (request: any) => any;
+export type ResponseMiddleware = (response: any) => any;

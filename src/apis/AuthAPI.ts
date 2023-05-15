@@ -1,17 +1,18 @@
 import { generateEncodedAuthString } from '../helpers/encode';
 import { fmAxios } from '../helpers/fmAxios';
 import { FMAuthMethod } from '../types/FMAxios';
-import { AuthResponse, EmptyResponse, FilemakerDataAPI } from '..';
+import { AuthResponse, EmptyResponse } from '..';
 import { logger } from '../logger';
+import { FileMakerRequestHandler } from '../request-handler';
 
 const TIME_LIMIT = 1000 * 60 * 15;
 
 export class AuthAPI {
-  private fm: FilemakerDataAPI;
+  private fm: FileMakerRequestHandler;
   private accessToken: string | null;
   private accessTokenTimestamp: number;
 
-  constructor(fm: FilemakerDataAPI) {
+  constructor(fm: FileMakerRequestHandler) {
     this.fm = fm;
     this.accessToken = null;
     this.accessTokenTimestamp = 0;
@@ -53,7 +54,7 @@ export class AuthAPI {
 
     // * Switch to BASIC authorization method during login
     const response = await fmAxios<AuthResponse>({
-      baseURL: this.fm.getBaseURL({ withoutLayout: true }),
+      baseURL: this.fm.getBaseURL(),
       url: `/sessions`,
       method: 'POST',
       auth: {
@@ -76,7 +77,7 @@ export class AuthAPI {
 
   public async logout(authToken: string) {
     const response = await fmAxios<EmptyResponse>({
-      baseURL: this.fm.getBaseURL({ withoutLayout: true }),
+      baseURL: this.fm.getBaseURL(),
       url: `/sessions/${authToken}`,
       method: 'DELETE',
       auth: {
