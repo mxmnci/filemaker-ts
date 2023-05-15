@@ -75,15 +75,21 @@ export class FilemakerDataAPI {
     this.database = database;
   }
 
-  public createRequestHandler(layout: string) {
+  public createRequestHandler(
+    layout: string,
+    requestMiddleware?: RequestMiddleware,
+    responseMiddleware?: ResponseMiddleware
+  ) {
     return new FileMakerRequestHandler({
       username: this.username,
       password: this.password,
       host: this.host,
       database: this.database,
       layout,
-      requestMiddleware: this.requestMiddleware,
-      responseMiddleware: this.responseMiddleware,
+      requestMiddleware,
+      responseMiddleware,
+      globalRequestMiddleware: this.requestMiddleware,
+      globalResponseMiddleware: this.responseMiddleware,
     });
   }
 }

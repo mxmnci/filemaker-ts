@@ -14,6 +14,8 @@ type RequestHandlerOptions = {
   layout: string;
   requestMiddleware?: RequestMiddleware;
   responseMiddleware?: ResponseMiddleware;
+  globalRequestMiddleware?: RequestMiddleware;
+  globalResponseMiddleware?: ResponseMiddleware;
 };
 
 export class FileMakerRequestHandler {
@@ -29,6 +31,8 @@ export class FileMakerRequestHandler {
 
   private requestMiddleware?: RequestMiddleware;
   private responseMiddleware?: ResponseMiddleware;
+  private globalRequestMiddleware?: RequestMiddleware;
+  private globalResponseMiddleware?: ResponseMiddleware;
 
   constructor(options: RequestHandlerOptions) {
     this.username = options.username;
@@ -43,6 +47,8 @@ export class FileMakerRequestHandler {
 
     this.requestMiddleware = options.requestMiddleware;
     this.responseMiddleware = options.responseMiddleware;
+    this.globalRequestMiddleware = options.globalRequestMiddleware;
+    this.globalResponseMiddleware = options.globalResponseMiddleware;
   }
 
   /**
@@ -72,12 +78,18 @@ export class FileMakerRequestHandler {
     data?: RequestDataType,
     config?: HttpConfig
   ) {
+    // Get an access token
     const accessToken = await this.auth.login(this.username, this.password);
 
+    // Apply request middleware
     if (this.requestMiddleware) {
       data = this.requestMiddleware(data);
     }
+    if (this.globalRequestMiddleware) {
+      data = this.globalRequestMiddleware(data);
+    }
 
+    // Send the request
     let response = await fmAxios<ResponseType, RequestDataType>({
       baseURL: this.getBaseURL(this.layout),
       url,
@@ -90,8 +102,12 @@ export class FileMakerRequestHandler {
       config: config ? config.axios : undefined,
     });
 
+    // Apply response middleware
     if (this.responseMiddleware) {
       response = this.responseMiddleware(response);
+    }
+    if (this.globalResponseMiddleware) {
+      response = this.globalResponseMiddleware(response);
     }
 
     return response;
