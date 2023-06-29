@@ -1,4 +1,3 @@
-import QueryString from 'qs';
 import { CreateRecordResponse, EntityResponse, GetRecordRangeParams } from '..';
 import {
   CreateRecordRequest,
@@ -30,10 +29,10 @@ export class RecordAPI {
    * @returns EntityResponse
    */
   public async getRecordRange<Entity>(params: GetRecordRangeParams) {
-    const queryString = QueryString.stringify({
-      _offset: params.offset || undefined,
-      _limit: params.limit || undefined,
-    });
+    const queryString = new URLSearchParams({
+      _offset: params.offset ? params.offset.toString() : '',
+      _limit: params.limit ? params.limit.toString() : '',
+    }).toString();
 
     return this.fm.get<EntityResponse<Entity>>(`/records?${queryString}`);
   }
