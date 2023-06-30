@@ -1,10 +1,7 @@
 import EventEmitter from 'events';
 
 export class RequestQueue extends EventEmitter {
-  private queue: Array<{
-    priority: number;
-    request: () => Promise<unknown>;
-  }> = [];
+  private queue: Array<() => Promise<unknown>> = [];
   private concurrency: number;
   private activeRequests = 0;
   private maxQueueSize: number;
@@ -15,36 +12,45 @@ export class RequestQueue extends EventEmitter {
     this.maxQueueSize = maxQueueSize;
   }
 
-  public enqueue(request: () => Promise<unknown>, priority = 0) {
+  public enqueue(request: () => Promise<unknown>) {
     if (this.queue.length >= this.maxQueueSize) {
       throw new Error('Queue is full');
     }
-    this.queue.push({ priority, request });
-    this.queue.sort((a, b) => b.priority - a.priority); // sort descending
+    this.queue.push(request);
   }
 
   public dequeue(): (() => Promise<unknown>) | undefined {
     if (this.queue.length === 0) throw new Error('Queue is empty');
-    return this.queue.shift()?.request;
+    return this.queue.shift();
   }
 
   public async drain() {
+    const concurrentRequests: Promise<void>[] = [];
+
     while (this.activeRequests < this.concurrency && this.queue.length > 0) {
       this.activeRequests++;
       const request = this.dequeue();
       if (!request) throw new Error('Queue should not be empty');
 
-      try {
-        this.emit('requestStarted', request);
-        await request();
-        this.activeRequests--;
-        this.emit('requestFinished', request);
-        await this.drain();
-      } catch (error) {
-        this.activeRequests--;
-        this.emit('requestFailed', request, error);
-        await this.drain();
-      }
+      const requestPromise = (async () => {
+        try {
+          this.emit('requestStarted', request);
+          await request();
+          this.activeRequests--;
+          this.emit('requestFinished', request);
+        } catch (error) {
+          this.activeRequests--;
+          this.emit('requestFailed', request, error);
+        }
+      })();
+
+      concurrentRequests.push(requestPromise);
+    }
+
+    await Promise.all(concurrentRequests);
+
+    if (this.queue.length > 0) {
+      await this.drain();
     }
   }
 

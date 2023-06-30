@@ -49,10 +49,13 @@ describe('RequestQueue', () => {
     await expect(dequeuedRequest2()).resolves.toEqual('Success 2');
   });
 
-  test('drain stress test', async () => {
+  test('drain large N test', async () => {
+    const queue = new RequestQueue(100);
     const request = jest.fn().mockResolvedValue('Success');
-    for (let i = 0; i < 100; i++) {
+    const failure = jest.fn().mockRejectedValue('Error');
+    for (let i = 0; i < 1000; i++) {
       queue.enqueue(request);
+      queue.enqueue(failure);
     }
 
     await queue.drain();
