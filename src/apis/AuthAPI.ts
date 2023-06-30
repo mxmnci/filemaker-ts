@@ -3,14 +3,31 @@ import { fmAxios } from '../helpers/fmAxios';
 import { FMAuthMethod } from '../types/FMAxios';
 import { AuthResponse, EmptyResponse } from '..';
 import { logger } from '../logger';
+import { getBaseURL } from '../helpers/utils/url.util';
 
 const TIME_LIMIT = 1000 * 60 * 15;
+
+export type AuthAPIOptions = {
+  host: string;
+  database: string;
+  username: string;
+  password: string;
+};
 
 export class AuthAPI {
   private accessToken: string | null;
   private accessTokenTimestamp: number;
+  private host: string;
+  private database: string;
+  private username: string;
+  private password: string;
 
-  constructor() {
+  constructor(options: AuthAPIOptions) {
+    this.host = options.host;
+    this.database = options.database;
+    this.username = options.username;
+    this.password = options.password;
+
     this.accessToken = null;
     this.accessTokenTimestamp = 0;
   }
@@ -21,22 +38,18 @@ export class AuthAPI {
    * @param username
    * @param password
    */
-  public async login(username: string, password: string): Promise<string> {
+  public async login(): Promise<string> {
     let accessToken;
 
+    // TODO: Ensure that access token check is working properly
     accessToken = this.getExistingAccessToken();
 
     logger.debug('Auth API - Access token not found! Retrieving a new one...');
 
     // Continue with BASIC auth if no cached access token
-    if (!username || !password) {
-      throw new Error('Invalid login credentials');
-    }
-
-    accessToken = await this.loginWithBasicAuth(username, password);
+    accessToken = await this.loginWithBasicAuth();
 
     this.accessToken = accessToken;
-    this.accessTokenTimestamp = Date.now();
 
     return accessToken as string;
   }
@@ -72,14 +85,21 @@ export class AuthAPI {
    * @param password The password
    * @returns {Promise<string>} Promise resolved with the auth token
    */
-  private async loginWithBasicAuth(username: string, password: string) {
+  private async loginWithBasicAuth(): Promise<string> {
+    if (!this.username || !this.password) {
+      throw new Error('Missing username or password!');
+    }
+
     const encodedUserAndPassword = generateEncodedAuthString(
-      username,
-      password
+      this.username,
+      this.password
     );
 
     const response = await fmAxios<AuthResponse>({
-      baseURL: ,
+      baseURL: getBaseURL({
+        host: this.host,
+        database: this.database,
+      }),
       url: `/sessions`,
       method: 'POST',
       auth: {
@@ -91,6 +111,8 @@ export class AuthAPI {
     if (!response) {
       throw new Error('Unable to authenticate');
     }
+
+    this.accessTokenTimestamp = Date.now();
 
     return response.response.token;
   }
@@ -107,9 +129,12 @@ export class AuthAPI {
    * @param authToken The auth token
    * @returns {Promise<EmptyResponse>} Promise resolved with the response
    */
-  public async logout(authToken: string) {
+  public async logout(authToken: string): Promise<EmptyResponse> {
     const response = await fmAxios<EmptyResponse>({
-      baseURL: this.fm.getBaseURL(),
+      baseURL: getBaseURL({
+        host: this.host,
+        database: this.database,
+      }),
       url: `/sessions/${authToken}`,
       method: 'DELETE',
       auth: {

@@ -26,7 +26,7 @@ export async function fmAxios<ResponseType, RequestDataType = any>(
   };
 
   try {
-    const response = await axios.request<ResponseType>(request);
+    const response: AxiosResponse<ResponseType> = await axios(request);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

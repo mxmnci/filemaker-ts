@@ -6,6 +6,7 @@ import { RecordAPI } from './apis/RecordAPI';
 import { FindAPI } from './apis/FindAPI';
 import { getBaseURL } from './helpers/utils/url.util';
 import { AuthAPI } from './apis/AuthAPI';
+import { RequestQueue } from './helpers/classes/requestQueue';
 
 type RequestHandlerOptions = {
   host: string;
@@ -13,6 +14,8 @@ type RequestHandlerOptions = {
   username: string;
   password: string;
   layout: string;
+  requestQueue: RequestQueue<unknown>;
+  auth: AuthAPI;
   requestMiddleware?: RequestMiddleware;
   responseMiddleware?: ResponseMiddleware;
   globalRequestMiddleware?: RequestMiddleware;
@@ -20,8 +23,6 @@ type RequestHandlerOptions = {
 };
 
 export class FileMakerRequestHandler {
-  private username: string;
-  private password: string;
   private host: string;
   private database: string;
   private layout: string;
@@ -35,21 +36,23 @@ export class FileMakerRequestHandler {
   private globalRequestMiddleware?: RequestMiddleware;
   private globalResponseMiddleware?: ResponseMiddleware;
 
-  constructor(options: RequestHandlerOptions) {
-    this.username = options.username;
-    this.password = options.password;
-    this.host = options.host;
-    this.database = options.database;
-    this.layout = options.layout;
+  private requestQueue: RequestQueue<unknown>;
+
+  constructor(params: RequestHandlerOptions) {
+    this.host = params.host;
+    this.database = params.database;
+    this.layout = params.layout;
 
     this.records = new RecordAPI(this);
     this.find = new FindAPI(this);
-    this.auth = new AuthAPI();
+    this.auth = params.auth;
 
-    this.requestMiddleware = options.requestMiddleware;
-    this.responseMiddleware = options.responseMiddleware;
-    this.globalRequestMiddleware = options.globalRequestMiddleware;
-    this.globalResponseMiddleware = options.globalResponseMiddleware;
+    this.requestMiddleware = params.requestMiddleware;
+    this.responseMiddleware = params.responseMiddleware;
+    this.globalRequestMiddleware = params.globalRequestMiddleware;
+    this.globalResponseMiddleware = params.globalResponseMiddleware;
+
+    this.requestQueue = params.requestQueue;
   }
 
   /**
@@ -67,7 +70,7 @@ export class FileMakerRequestHandler {
     config?: HttpConfig
   ) {
     // Get an access token
-    const accessToken = await this.auth.login(this.username, this.password);
+    const accessToken = await this.auth.login();
 
     // Apply request middleware
     if (this.requestMiddleware) {
@@ -78,7 +81,7 @@ export class FileMakerRequestHandler {
     }
 
     // Send the request
-    let response = await fmAxios<ResponseType, RequestDataType>({
+    const request = fmAxios<ResponseType, RequestDataType>({
       baseURL: getBaseURL({
         host: this.host,
         database: this.database,
@@ -93,6 +96,9 @@ export class FileMakerRequestHandler {
       },
       config: config ? config.axios : undefined,
     });
+
+    // Add the request to the queue
+    let response = await this.requestQueue.enqueue(() => request);
 
     // Apply response middleware
     if (this.responseMiddleware) {

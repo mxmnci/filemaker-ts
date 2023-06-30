@@ -9,7 +9,11 @@ import { FileMakerRequestHandler } from '../requestHandler';
 import { encodeObjectAsQueryString } from '../helpers/utils/encode.util';
 
 export class RecordAPI {
-  constructor(fm: FileMakerRequestHandler) {}
+  private fm: FileMakerRequestHandler;
+
+  constructor(fm: FileMakerRequestHandler) {
+    this.fm = fm;
+  }
 
   /**
    * This method gets a record from the current layout

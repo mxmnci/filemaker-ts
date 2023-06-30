@@ -8,8 +8,7 @@ import {
 import { logger } from './logger';
 import winston from 'winston';
 import { FileMakerRequestHandler } from './requestHandler';
-import { RecordAPI } from './apis/RecordAPI';
-import { FindAPI } from './apis/FindAPI';
+import { RequestQueue } from './helpers/classes/requestQueue';
 import { AuthAPI } from './apis/AuthAPI';
 dotenv.config();
 
@@ -24,9 +23,8 @@ export class FileMakerDataAPI {
   private requestMiddleware?: RequestMiddleware;
   private responseMiddleware?: ResponseMiddleware;
 
-  private recordAPI = new RecordAPI();
-  private findAPI = new FindAPI();
-  private authAPI = new AuthAPI();
+  public auth: AuthAPI;
+  private requestQueue: RequestQueue<unknown>;
 
   constructor(options: FilemakerDataAPIOptions) {
     this.host = options.host;
@@ -35,6 +33,17 @@ export class FileMakerDataAPI {
     this.password = options.password;
     this.requestMiddleware = options.requestMiddleware;
     this.responseMiddleware = options.responseMiddleware;
+
+    this.auth = new AuthAPI({
+      host: options.host,
+      database: options.database,
+      username: options.username,
+      password: options.password,
+    });
+
+    this.requestQueue = new RequestQueue({
+      concurrency: 5,
+    });
 
     // Configure logging
     if (options.loggingConfig) this.configureLogging(options.loggingConfig);
@@ -78,6 +87,8 @@ export class FileMakerDataAPI {
       responseMiddleware,
       globalRequestMiddleware: this.requestMiddleware,
       globalResponseMiddleware: this.responseMiddleware,
+      requestQueue: this.requestQueue,
+      auth: this.auth,
     });
   }
 

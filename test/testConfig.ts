@@ -1,3 +1,5 @@
+import { FilemakerDataAPIOptions } from '../src';
+
 // Validate environment variables
 function loadEnvVar(envVar: string): string {
   const value = process.env[envVar];
@@ -9,9 +11,12 @@ function loadEnvVar(envVar: string): string {
   return value;
 }
 
-export const testConfig = {
+export const testConfig: FilemakerDataAPIOptions = {
   host: loadEnvVar('FILEMAKER_HOST'),
   database: loadEnvVar('FILEMAKER_DATABASE'),
-  username: loadEnvVar('FILEMAKER_USERNAME'),
+  username: loadEnvVar('FILEMAKER_USER'),
   password: loadEnvVar('FILEMAKER_PASSWORD'),
+  loggingConfig: {
+    logDebugToConsole: true,
+  },
 };

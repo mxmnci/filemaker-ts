@@ -1,10 +1,13 @@
 import { RequestQueue } from './requestQueue'; // Update with actual path
 
 describe('RequestQueue', () => {
-  let queue: RequestQueue;
+  let queue: RequestQueue<{}>;
+  let manualQueue: RequestQueue<{}>;
 
   beforeEach(() => {
     queue = new RequestQueue();
+    // A queue that does not automatically drain
+    manualQueue = new RequestQueue({ automaticDrain: false });
   });
 
   test('initialize', () => {
@@ -15,57 +18,59 @@ describe('RequestQueue', () => {
 
   test('enqueue and dequeue', async () => {
     const request = jest.fn().mockResolvedValue('Success');
-    queue.enqueue(request);
-    expect(queue.length).toBe(1);
-    expect(queue.isQueued).toBe(true);
+    manualQueue.enqueue(request);
+    expect(manualQueue.length).toBe(1);
+    expect(manualQueue.isQueued).toBe(true);
 
-    const dequeuedRequest = queue.dequeue();
-    expect(queue.length).toBe(0);
-    expect(queue.isQueued).toBe(false);
+    const dequeuedRequest = manualQueue.dequeue();
+    expect(manualQueue.length).toBe(0);
+    expect(manualQueue.isQueued).toBe(false);
 
     if (!dequeuedRequest) throw new Error('Request should not be undefined');
-    await expect(dequeuedRequest()).resolves.toEqual('Success');
+    await expect(dequeuedRequest.request()).resolves.toEqual('Success');
   });
 
   test('enqueue/dequeue multiple requests', async () => {
     const request1 = jest.fn().mockResolvedValue('Success 1');
     const request2 = jest.fn().mockResolvedValue('Success 2');
-    queue.enqueue(request1);
-    queue.enqueue(request2);
-    expect(queue.length).toBe(2);
-    expect(queue.isQueued).toBe(true);
+    manualQueue.enqueue(request1);
+    manualQueue.enqueue(request2);
+    expect(manualQueue.length).toBe(2);
+    expect(manualQueue.isQueued).toBe(true);
 
-    const dequeuedRequest1 = queue.dequeue();
-    expect(queue.length).toBe(1);
-    expect(queue.isQueued).toBe(true);
+    const dequeuedRequest1 = manualQueue.dequeue();
+    expect(manualQueue.length).toBe(1);
+    expect(manualQueue.isQueued).toBe(true);
 
-    const dequeuedRequest2 = queue.dequeue();
-    expect(queue.length).toBe(0);
-    expect(queue.isQueued).toBe(false);
+    const dequeuedRequest2 = manualQueue.dequeue();
+    expect(manualQueue.length).toBe(0);
+    expect(manualQueue.isQueued).toBe(false);
 
     if (!dequeuedRequest1 || !dequeuedRequest2)
       throw new Error('Request should not be undefined');
-    await expect(dequeuedRequest1()).resolves.toEqual('Success 1');
-    await expect(dequeuedRequest2()).resolves.toEqual('Success 2');
+    await expect(dequeuedRequest1.request()).resolves.toEqual('Success 1');
+    await expect(dequeuedRequest2.request()).resolves.toEqual('Success 2');
   });
 
   test('drain large N test', async () => {
-    const queue = new RequestQueue(100);
+    const queue = new RequestQueue();
     const request = jest.fn().mockResolvedValue('Success');
     const failure = jest.fn().mockRejectedValue('Error');
+    const promises = [];
+
     for (let i = 0; i < 1000; i++) {
-      queue.enqueue(request);
-      queue.enqueue(failure);
+      promises.push(queue.enqueue(request));
+      promises.push(queue.enqueue(failure));
     }
 
-    await queue.drain();
+    await Promise.allSettled(promises);
+
     expect(queue.length).toBe(0);
     expect(queue.isIdle).toBe(true);
   });
 
   test('run with successful request', async () => {
     const request = jest.fn().mockResolvedValue('Success');
-    queue.enqueue(request);
 
     let requestStarted = false;
     let requestFinished = false;
@@ -80,7 +85,9 @@ describe('RequestQueue', () => {
       expect(queue.isIdle).toBe(true);
     });
 
-    await queue.drain();
+    const promise = queue.enqueue(request);
+
+    await expect(promise).resolves.toEqual('Success');
 
     // Ensure that both events have been emitted
     expect(requestStarted).toBe(true);
@@ -89,7 +96,6 @@ describe('RequestQueue', () => {
 
   test('run with failed request', async () => {
     const request = jest.fn().mockRejectedValue('Error');
-    queue.enqueue(request);
     let requestStarted = false;
     let requestFailed = false;
 
@@ -103,25 +109,32 @@ describe('RequestQueue', () => {
       expect(queue.isIdle).toBe(true);
     });
 
-    await queue.drain();
+    try {
+      await queue.enqueue(request);
+    } catch (e) {
+      expect(e).toEqual('Error');
+    }
 
     // Ensure that both events have been emitted
     expect(requestStarted).toBe(true);
     expect(requestFailed).toBe(true);
   });
 
-  test('clear', () => {
+  test('clear', async () => {
     const request = jest.fn().mockResolvedValue('Success');
-    queue.enqueue(request);
-    queue.clear();
+    manualQueue.enqueue(request);
+    manualQueue.clear();
 
-    expect(queue.length).toBe(0);
-    expect(queue.isIdle).toBe(true);
+    expect(manualQueue.length).toBe(0);
+    expect(manualQueue.isIdle).toBe(true);
   });
 
   test('queue overflow', () => {
     const request = jest.fn().mockResolvedValue('Success');
-    queue = new RequestQueue(1, 1);
+    const queue = new RequestQueue({
+      maxQueueSize: 1,
+    });
+    queue.enqueue(request);
     queue.enqueue(request);
 
     expect(() => queue.enqueue(request)).toThrow('Queue is full');
@@ -133,5 +146,12 @@ describe('RequestQueue', () => {
 
   test('drain from empty queue', async () => {
     await expect(queue.drain()).resolves.toBeUndefined();
+  });
+
+  test('receive a value from a response', async () => {
+    const response = await queue.enqueue(
+      () => new Promise(resolve => resolve('This is a test'))
+    );
+    expect(response).toEqual('This is a test');
   });
 });
