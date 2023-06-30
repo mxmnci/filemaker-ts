@@ -3,17 +3,18 @@ import { FMAxiosConfig } from './FMAxios';
 export * from './request';
 export * from './response';
 
+export type LoggingConfig = {
+  logDebugToConsole?: boolean;
+  logCombinedToFile?: boolean;
+  logErrorsToFile?: boolean;
+};
+
 export type FilemakerDataAPIOptions = {
   host: string;
   database: string;
-  layout: string;
   username: string;
   password: string;
-  config?: {
-    logDebugToConsole?: boolean;
-    logCombinedToFile?: boolean;
-    logErrorsToFile?: boolean;
-  };
+  loggingConfig?: LoggingConfig;
   requestMiddleware?: RequestMiddleware;
   responseMiddleware?: ResponseMiddleware;
 };

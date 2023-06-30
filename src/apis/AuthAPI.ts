@@ -1,19 +1,16 @@
-import { generateEncodedAuthString } from '../helpers/encode';
+import { generateEncodedAuthString } from '../helpers/utils/encode.util';
 import { fmAxios } from '../helpers/fmAxios';
 import { FMAuthMethod } from '../types/FMAxios';
 import { AuthResponse, EmptyResponse } from '..';
 import { logger } from '../logger';
-import { FileMakerRequestHandler } from '../request-handler';
 
 const TIME_LIMIT = 1000 * 60 * 15;
 
 export class AuthAPI {
-  private fm: FileMakerRequestHandler;
   private accessToken: string | null;
   private accessTokenTimestamp: number;
 
-  constructor(fm: FileMakerRequestHandler) {
-    this.fm = fm;
+  constructor() {
     this.accessToken = null;
     this.accessTokenTimestamp = 0;
   }
@@ -25,20 +22,9 @@ export class AuthAPI {
    * @param password
    */
   public async login(username: string, password: string): Promise<string> {
-    const timeElapsedSinceTokenRefresh = Date.now() - this.accessTokenTimestamp;
+    let accessToken;
 
-    logger.debug(
-      `Auth API - Time elapsed since access token refresh: ${timeElapsedSinceTokenRefresh}ms`
-    );
-
-    const isTimeLimitExceeded = timeElapsedSinceTokenRefresh > TIME_LIMIT;
-
-    // Use the cached access token if time limit hasn't been exceeded
-    if (!isTimeLimitExceeded && this.accessToken) {
-      logger.debug('Auth API - Access token found! Using cached access token.');
-      this.accessTokenTimestamp = Date.now();
-      return this.accessToken;
-    }
+    accessToken = this.getExistingAccessToken();
 
     logger.debug('Auth API - Access token not found! Retrieving a new one...');
 
@@ -47,14 +33,53 @@ export class AuthAPI {
       throw new Error('Invalid login credentials');
     }
 
+    accessToken = await this.loginWithBasicAuth(username, password);
+
+    this.accessToken = accessToken;
+    this.accessTokenTimestamp = Date.now();
+
+    return accessToken as string;
+  }
+
+  /**
+   * Check if the stored access token is valid
+   * @returns {boolean} True if the access token is valid
+   */
+  private isStoredAccessTokenValid(): boolean {
+    const timeElapsedSinceTokenRefresh = Date.now() - this.accessTokenTimestamp;
+    const isTimeLimitExceeded = timeElapsedSinceTokenRefresh > TIME_LIMIT;
+    return !isTimeLimitExceeded && this.accessToken ? true : false;
+  }
+
+  /**
+   * Get the existing access token if it is valid
+   * @returns {string | null} The access token or null if it is invalid
+   */
+  private getExistingAccessToken(): string | null {
+    const isAccessTokenValid = this.isStoredAccessTokenValid();
+    if (isAccessTokenValid) {
+      logger.debug(
+        'Auth API - Stored access token is valid! Using cached access token.'
+      );
+      return this.accessToken;
+    }
+    return null;
+  }
+
+  /**
+   * Login to the Filemaker Server Data API using basic auth
+   * @param username The username
+   * @param password The password
+   * @returns {Promise<string>} Promise resolved with the auth token
+   */
+  private async loginWithBasicAuth(username: string, password: string) {
     const encodedUserAndPassword = generateEncodedAuthString(
       username,
       password
     );
 
-    // * Switch to BASIC authorization method during login
     const response = await fmAxios<AuthResponse>({
-      baseURL: this.fm.getBaseURL(),
+      baseURL: ,
       url: `/sessions`,
       method: 'POST',
       auth: {
@@ -67,14 +92,21 @@ export class AuthAPI {
       throw new Error('Unable to authenticate');
     }
 
-    const accessToken = response.response.token;
-
-    this.accessToken = accessToken;
-    this.accessTokenTimestamp = Date.now();
-
-    return accessToken as string;
+    return response.response.token;
   }
 
+  /**
+   * Set the access token timer to the current time
+   */
+  public async resetAccessTokenTimer() {
+    this.accessTokenTimestamp = Date.now();
+  }
+
+  /**
+   * Logout of the Filemaker Server Data API
+   * @param authToken The auth token
+   * @returns {Promise<EmptyResponse>} Promise resolved with the response
+   */
   public async logout(authToken: string) {
     const response = await fmAxios<EmptyResponse>({
       baseURL: this.fm.getBaseURL(),

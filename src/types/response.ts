@@ -19,6 +19,9 @@ export interface FMResponse<ResponseDataType> {
 // Empty response type
 export interface EmptyResponse extends FMResponse<{}> {}
 
+// Error response type
+export interface ErrorResponse extends EmptyResponse {}
+
 // Auth response types
 export interface AuthResponseData {
   token: string;

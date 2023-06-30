@@ -5,14 +5,11 @@ import {
   UpdateRecordRequest,
   UpdateRecordResponse,
 } from '../types';
-import { FileMakerRequestHandler } from '../request-handler';
+import { FileMakerRequestHandler } from '../requestHandler';
+import { encodeObjectAsQueryString } from '../helpers/utils/encode.util';
 
 export class RecordAPI {
-  private fm: FileMakerRequestHandler;
-
-  constructor(fm: FileMakerRequestHandler) {
-    this.fm = fm;
-  }
+  constructor(fm: FileMakerRequestHandler) {}
 
   /**
    * This method gets a record from the current layout
@@ -29,10 +26,10 @@ export class RecordAPI {
    * @returns EntityResponse
    */
   public async getRecordRange<Entity>(params: GetRecordRangeParams) {
-    const queryString = new URLSearchParams({
-      _offset: params.offset ? params.offset.toString() : '',
-      _limit: params.limit ? params.limit.toString() : '',
-    }).toString();
+    const queryString = encodeObjectAsQueryString({
+      _offset: params.offset !== undefined ? params.offset.toString() : '',
+      _limit: params.limit !== undefined ? params.limit.toString() : '',
+    });
 
     return this.fm.get<EntityResponse<Entity>>(`/records?${queryString}`);
   }

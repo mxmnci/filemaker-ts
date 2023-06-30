@@ -1,4 +1,4 @@
-import { FMAuth } from '../types/FMAxios';
+import { FMAuth } from '../../types/FMAxios';
 
 export function getAuthString(auth: FMAuth): string {
   switch (auth.method) {

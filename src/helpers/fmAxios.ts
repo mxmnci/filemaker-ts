@@ -1,12 +1,15 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { FMAxiosParams } from '../types/FMAxios';
-import { EmptyResponse } from '../types/response';
-import { getAuthString } from './getAuthString';
-import { handleDataAPIException } from './handleDataAPIException';
+import { getAuthString } from './utils/getAuthString.util';
+import {
+  handleFileMakerDataAPIException,
+  isFileMakerErrorResponse,
+} from './utils/exception.util';
+import { logger } from '../logger';
 
 export async function fmAxios<ResponseType, RequestDataType = any>(
   params: FMAxiosParams<RequestDataType>
-) {
+): Promise<AxiosResponse<ResponseType>['data']> {
   const { baseURL, url, method, auth, data, config } = params;
   const { contentType, ...axiosConfig } = config ?? {};
 
@@ -23,15 +26,21 @@ export async function fmAxios<ResponseType, RequestDataType = any>(
   };
 
   try {
-    const response: AxiosResponse<ResponseType> = await axios(request);
+    const response = await axios.request<ResponseType>(request);
     return response.data;
-  } catch (err) {
-    if (axios.isAxiosError(err) && err.response) {
-      return handleDataAPIException(
-        err.response as AxiosResponse<EmptyResponse>
-      );
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      // Handle FileMaker Data API errors
+      if (error.response && isFileMakerErrorResponse(error.response)) {
+        throw handleFileMakerDataAPIException(error.response.data);
+      }
+
+      // Handle other Axios errors
+      throw new Error(error.message);
     }
 
-    throw new Error('An unexpected error occurred');
+    // Handle unknown errors
+    logger.log('error', 'An unknown error ocurred', error);
+    throw error;
   }
 }

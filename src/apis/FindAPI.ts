@@ -1,5 +1,5 @@
 import { EntityResponse, FindRequestParams } from '..';
-import { FileMakerRequestHandler } from '../request-handler';
+import { FileMakerRequestHandler } from '../requestHandler';
 import { FilemakerTSException } from '../types/exceptions';
 export class FindAPI {
   private fm: FileMakerRequestHandler;

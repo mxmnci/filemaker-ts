@@ -1,10 +1,11 @@
 import { Method } from 'axios';
 import { fmAxios } from './helpers/fmAxios';
 import { HttpConfig, RequestMiddleware, ResponseMiddleware } from './types';
-import { AuthAPI } from './apis/AuthAPI';
 import { FMAuthMethod } from './types/FMAxios';
 import { RecordAPI } from './apis/RecordAPI';
 import { FindAPI } from './apis/FindAPI';
+import { getBaseURL } from './helpers/utils/url.util';
+import { AuthAPI } from './apis/AuthAPI';
 
 type RequestHandlerOptions = {
   host: string;
@@ -25,9 +26,9 @@ export class FileMakerRequestHandler {
   private database: string;
   private layout: string;
 
-  public auth: AuthAPI;
   public records: RecordAPI;
   public find: FindAPI;
+  private auth: AuthAPI;
 
   private requestMiddleware?: RequestMiddleware;
   private responseMiddleware?: ResponseMiddleware;
@@ -41,27 +42,14 @@ export class FileMakerRequestHandler {
     this.database = options.database;
     this.layout = options.layout;
 
-    this.auth = new AuthAPI(this);
     this.records = new RecordAPI(this);
     this.find = new FindAPI(this);
+    this.auth = new AuthAPI();
 
     this.requestMiddleware = options.requestMiddleware;
     this.responseMiddleware = options.responseMiddleware;
     this.globalRequestMiddleware = options.globalRequestMiddleware;
     this.globalResponseMiddleware = options.globalResponseMiddleware;
-  }
-
-  /**
-   * Get the base url for the current host, database and layout
-   * @param options The options to use
-   * @returns The base url
-   */
-  public getBaseURL(layout?: string) {
-    if (!layout) {
-      return `${this.host}/fmi/data/v1/databases/${this.database}`;
-    }
-
-    return `${this.host}/fmi/data/v1/databases/${this.database}/layouts/${this.layout}`;
   }
 
   /**
@@ -91,7 +79,11 @@ export class FileMakerRequestHandler {
 
     // Send the request
     let response = await fmAxios<ResponseType, RequestDataType>({
-      baseURL: this.getBaseURL(this.layout),
+      baseURL: getBaseURL({
+        host: this.host,
+        database: this.database,
+        layout: this.layout,
+      }),
       url,
       method,
       data,
@@ -109,6 +101,9 @@ export class FileMakerRequestHandler {
     if (this.globalResponseMiddleware) {
       response = this.globalResponseMiddleware(response);
     }
+
+    // Reset the access token timer
+    this.auth.resetAccessTokenTimer();
 
     return response;
   }
