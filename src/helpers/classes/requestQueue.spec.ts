@@ -1,8 +1,8 @@
 import { RequestQueue } from './requestQueue'; // Update with actual path
 
 describe('RequestQueue', () => {
-  let queue: RequestQueue<{}>;
-  let manualQueue: RequestQueue<{}>;
+  let queue: RequestQueue;
+  let manualQueue: RequestQueue;
 
   beforeEach(() => {
     queue = new RequestQueue();

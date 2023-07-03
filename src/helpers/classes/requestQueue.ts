@@ -8,25 +8,18 @@ interface QueueItem<T> {
   reject: (reason?: any) => void;
 }
 
-export class RequestQueue<T> extends EventEmitter {
-  private queue: Array<QueueItem<T>> = [];
-  private concurrency: number;
-  private activeRequests = 0;
+export class RequestQueue extends EventEmitter {
+  private queue: Array<QueueItem<unknown>> = [];
   private maxQueueSize: number;
   private automaticDrain: boolean;
 
-  constructor({
-    concurrency = 1,
-    maxQueueSize = Infinity,
-    automaticDrain = true,
-  } = {}) {
+  constructor({ maxQueueSize = Infinity, automaticDrain = true } = {}) {
     super();
-    this.concurrency = concurrency;
     this.maxQueueSize = maxQueueSize;
     this.automaticDrain = automaticDrain;
   }
 
-  public enqueue(request: Request<T>): Promise<T> {
+  public enqueue<T>(request: Request<T>): Promise<T> {
     if (this.queue.length >= this.maxQueueSize) {
       throw new Error('Queue is full');
     }
@@ -41,7 +34,7 @@ export class RequestQueue<T> extends EventEmitter {
 
     this.queue.push({
       request,
-      resolve: resolve!,
+      resolve: resolve! as (value: unknown) => void,
       reject: reject!,
     });
 
@@ -53,7 +46,7 @@ export class RequestQueue<T> extends EventEmitter {
     return promise;
   }
 
-  public dequeue(): QueueItem<T> | undefined {
+  public dequeue(): QueueItem<unknown> | undefined {
     if (this.queue.length === 0) throw new Error('Queue is empty');
     return this.queue.shift();
   }
@@ -63,33 +56,20 @@ export class RequestQueue<T> extends EventEmitter {
       return;
     }
 
-    const concurrentRequests: Promise<void>[] = [];
+    const queueItem = this.dequeue();
+    if (!queueItem) throw new Error('Queue should not be empty');
 
-    while (this.activeRequests < this.concurrency && this.queue.length > 0) {
-      const queueItem = this.dequeue();
-      if (!queueItem) throw new Error('Queue should not be empty');
+    const { request, resolve, reject } = queueItem;
 
-      const { request, resolve, reject } = queueItem;
-
-      const requestPromise = (async () => {
-        this.activeRequests++;
-        try {
-          this.emit('requestStarted', request);
-          const result = await request();
-          resolve(result);
-          this.activeRequests--;
-          this.emit('requestFinished', request);
-        } catch (error) {
-          reject(error);
-          this.activeRequests--;
-          this.emit('requestFailed', request, error);
-        }
-      })();
-
-      concurrentRequests.push(requestPromise);
+    try {
+      this.emit('requestStarted', request);
+      const result = await request();
+      resolve(result);
+      this.emit('requestFinished', request);
+    } catch (error) {
+      reject(error);
+      this.emit('requestFailed', request, error);
     }
-
-    await Promise.all(concurrentRequests);
 
     if (this.queue.length > 0) {
       await this.drain();
@@ -105,7 +85,7 @@ export class RequestQueue<T> extends EventEmitter {
   }
 
   public get isRunning() {
-    return this.activeRequests > 0;
+    return this.queue.length > 0;
   }
 
   public get isQueued() {
@@ -113,6 +93,6 @@ export class RequestQueue<T> extends EventEmitter {
   }
 
   public get isIdle() {
-    return this.activeRequests === 0 && this.queue.length === 0;
+    return this.queue.length === 0;
   }
 }

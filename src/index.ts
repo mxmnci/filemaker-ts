@@ -24,7 +24,7 @@ export class FileMakerDataAPI {
   private responseMiddleware?: ResponseMiddleware;
 
   public auth: AuthAPI;
-  private requestQueue: RequestQueue<unknown>;
+  private requestQueue: RequestQueue;
 
   constructor(options: FilemakerDataAPIOptions) {
     this.host = options.host;
@@ -46,7 +46,7 @@ export class FileMakerDataAPI {
     });
 
     // Configure logging
-    if (options.loggingConfig) this.configureLogging(options.loggingConfig);
+    this.configureLogging(options.loggingConfig);
   }
 
   /**
@@ -72,12 +72,12 @@ export class FileMakerDataAPI {
    * @param responseMiddleware The response middleware to use for the request handler
    * @returns The request handler
    */
-  public createRequestHandler(
+  public createRequestHandler<T>(
     layout: string,
     requestMiddleware?: RequestMiddleware,
     responseMiddleware?: ResponseMiddleware
   ) {
-    return new FileMakerRequestHandler({
+    return new FileMakerRequestHandler<T>({
       username: this.username,
       password: this.password,
       host: this.host,
@@ -96,7 +96,7 @@ export class FileMakerDataAPI {
    * Configure debug logging for winston
    * @param config The logging config
    */
-  private configureLogging(config: LoggingConfig): void {
+  private configureLogging(config: LoggingConfig = {}): void {
     if (config.logDebugToConsole) {
       logger.add(
         new winston.transports.Console({

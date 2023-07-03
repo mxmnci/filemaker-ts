@@ -33,6 +33,22 @@ export class AuthAPI {
   }
 
   /**
+   * Get the access token
+   * @returns {string | null} The access token or null if it isn't set
+   */
+  public getAccessToken() {
+    return this.accessToken;
+  }
+
+  /**
+   * Get the access token timestamp
+   * @returns {number} The access token timestamp or 0 if it isn't set
+   */
+  public getAccessTokenTimestamp() {
+    return this.accessTokenTimestamp;
+  }
+
+  /**
    * Login to the Filemaker Server Data API
    * @returns {Promise<string>} Promise resolved with the auth token
    * @param username
@@ -40,16 +56,20 @@ export class AuthAPI {
    */
   public async login(): Promise<string> {
     let accessToken;
-
-    // TODO: Ensure that access token check is working properly
     accessToken = this.getExistingAccessToken();
-
-    logger.debug('Auth API - Access token not found! Retrieving a new one...');
-
-    // Continue with BASIC auth if no cached access token
-    accessToken = await this.loginWithBasicAuth();
-
-    this.accessToken = accessToken;
+    if (!accessToken) {
+      logger.debug(
+        'Auth API - Access token not found! Retrieving a new one...'
+      );
+      accessToken = await this.loginWithBasicAuth();
+      this.accessToken = accessToken;
+    } else {
+      logger.debug(
+        'Auth API - Stored access token is valid! Using cached access token.'
+      );
+      // Update the timestamp each time the the access token is used
+      this.accessTokenTimestamp = Date.now();
+    }
 
     return accessToken as string;
   }
@@ -71,9 +91,6 @@ export class AuthAPI {
   private getExistingAccessToken(): string | null {
     const isAccessTokenValid = this.isStoredAccessTokenValid();
     if (isAccessTokenValid) {
-      logger.debug(
-        'Auth API - Stored access token is valid! Using cached access token.'
-      );
       return this.accessToken;
     }
     return null;
@@ -118,10 +135,11 @@ export class AuthAPI {
   }
 
   /**
-   * Set the access token timer to the current time
+   * Clear the access token and reset the timestamp
    */
-  public async resetAccessTokenTimer() {
-    this.accessTokenTimestamp = Date.now();
+  private clearAccessToken() {
+    this.accessToken = null;
+    this.accessTokenTimestamp = 0;
   }
 
   /**
@@ -141,6 +159,8 @@ export class AuthAPI {
         method: FMAuthMethod.NONE,
       },
     });
+
+    this.clearAccessToken();
 
     return response;
   }

@@ -20,3 +20,5 @@ export const testConfig: FilemakerDataAPIOptions = {
     logDebugToConsole: true,
   },
 };
+
+export const testLayout = process.env.FILEMAKER_LAYOUT || 'Testing';

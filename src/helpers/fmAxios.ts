@@ -7,6 +7,9 @@ import {
 } from './utils/exception.util';
 import { logger } from '../logger';
 
+// Use Node.js adapter for Axios
+axios.defaults.adapter = require('axios/lib/adapters/http');
+
 export async function fmAxios<ResponseType, RequestDataType = any>(
   params: FMAxiosParams<RequestDataType>
 ): Promise<AxiosResponse<ResponseType>['data']> {
@@ -34,9 +37,6 @@ export async function fmAxios<ResponseType, RequestDataType = any>(
       if (error.response && isFileMakerErrorResponse(error.response)) {
         throw handleFileMakerDataAPIException(error.response.data);
       }
-
-      // Handle other Axios errors
-      throw new Error(error.message);
     }
 
     // Handle unknown errors

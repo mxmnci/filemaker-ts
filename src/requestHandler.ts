@@ -14,7 +14,7 @@ type RequestHandlerOptions = {
   username: string;
   password: string;
   layout: string;
-  requestQueue: RequestQueue<unknown>;
+  requestQueue: RequestQueue;
   auth: AuthAPI;
   requestMiddleware?: RequestMiddleware;
   responseMiddleware?: ResponseMiddleware;
@@ -22,21 +22,19 @@ type RequestHandlerOptions = {
   globalResponseMiddleware?: ResponseMiddleware;
 };
 
-export class FileMakerRequestHandler {
+export class FileMakerRequestHandler<Entity> {
   private host: string;
   private database: string;
   private layout: string;
 
-  public records: RecordAPI;
-  public find: FindAPI;
-  private auth: AuthAPI;
+  public records: RecordAPI<Entity>;
+  public find: FindAPI<Entity>;
+  public auth: AuthAPI;
 
   private requestMiddleware?: RequestMiddleware;
   private responseMiddleware?: ResponseMiddleware;
   private globalRequestMiddleware?: RequestMiddleware;
   private globalResponseMiddleware?: ResponseMiddleware;
-
-  private requestQueue: RequestQueue<unknown>;
 
   constructor(params: RequestHandlerOptions) {
     this.host = params.host;
@@ -51,8 +49,6 @@ export class FileMakerRequestHandler {
     this.responseMiddleware = params.responseMiddleware;
     this.globalRequestMiddleware = params.globalRequestMiddleware;
     this.globalResponseMiddleware = params.globalResponseMiddleware;
-
-    this.requestQueue = params.requestQueue;
   }
 
   /**
@@ -81,7 +77,7 @@ export class FileMakerRequestHandler {
     }
 
     // Send the request
-    const request = fmAxios<ResponseType, RequestDataType>({
+    let response = await fmAxios<ResponseType, RequestDataType>({
       baseURL: getBaseURL({
         host: this.host,
         database: this.database,
@@ -97,9 +93,6 @@ export class FileMakerRequestHandler {
       config: config ? config.axios : undefined,
     });
 
-    // Add the request to the queue
-    let response = await this.requestQueue.enqueue(() => request);
-
     // Apply response middleware
     if (this.responseMiddleware) {
       response = this.responseMiddleware(response);
@@ -107,9 +100,6 @@ export class FileMakerRequestHandler {
     if (this.globalResponseMiddleware) {
       response = this.globalResponseMiddleware(response);
     }
-
-    // Reset the access token timer
-    this.auth.resetAccessTokenTimer();
 
     return response;
   }

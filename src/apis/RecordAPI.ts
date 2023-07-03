@@ -1,6 +1,7 @@
 import { CreateRecordResponse, EntityResponse, GetRecordRangeParams } from '..';
 import {
   CreateRecordRequest,
+  DeleteRecordResponse,
   EmptyResponse,
   UpdateRecordRequest,
   UpdateRecordResponse,
@@ -8,10 +9,10 @@ import {
 import { FileMakerRequestHandler } from '../requestHandler';
 import { encodeObjectAsQueryString } from '../helpers/utils/encode.util';
 
-export class RecordAPI {
-  private fm: FileMakerRequestHandler;
+export class RecordAPI<Entity> {
+  private fm: FileMakerRequestHandler<Entity>;
 
-  constructor(fm: FileMakerRequestHandler) {
+  constructor(fm: FileMakerRequestHandler<Entity>) {
     this.fm = fm;
   }
 
@@ -20,7 +21,7 @@ export class RecordAPI {
    * @param recordId The ID of the record to retrieve on the current layout
    * @returns EntityResponse
    */
-  public async getRecord<Entity>(recordId: string) {
+  public async getRecord(recordId: string): Promise<EntityResponse<Entity>> {
     return this.fm.get<EntityResponse<Entity>>(`/records/${recordId}`);
   }
 
@@ -29,9 +30,11 @@ export class RecordAPI {
    * @param params Specify the offset and limit of the range
    * @returns EntityResponse
    */
-  public async getRecordRange<Entity>(params: GetRecordRangeParams) {
+  public async getRecordRange(
+    params: GetRecordRangeParams
+  ): Promise<EntityResponse<Entity>> {
     const queryString = encodeObjectAsQueryString({
-      _offset: params.offset !== undefined ? params.offset.toString() : '',
+      _offset: params.offset !== undefined ? params.offset.toString() : '1',
       _limit: params.limit !== undefined ? params.limit.toString() : '',
     });
 
@@ -43,7 +46,7 @@ export class RecordAPI {
    * @param record The entity to create on the current layout
    * @returns CreateRecordResponse
    */
-  public async createRecord<Entity>(fieldData: Entity) {
+  public async createRecord(fieldData: Entity): Promise<CreateRecordResponse> {
     return this.fm.post<CreateRecordResponse, CreateRecordRequest<Entity>>(
       `/records`,
       { fieldData }
@@ -57,10 +60,10 @@ export class RecordAPI {
    * @param fieldData The fields to update
    * @returns UpdateRecordResponse
    */
-  public async updateRecord<Entity>(
+  public async updateRecord(
     recordId: string,
     fieldData: Partial<Entity>
-  ) {
+  ): Promise<UpdateRecordResponse> {
     return this.fm.patch<UpdateRecordResponse, UpdateRecordRequest<Entity>>(
       `/records/${recordId}`,
       { fieldData }
@@ -73,7 +76,7 @@ export class RecordAPI {
    * @param recordId The ID of the record to be deleted
    * @returns EmptyResponse
    */
-  public async deleteRecord(recordId: string) {
+  public async deleteRecord(recordId: string): Promise<DeleteRecordResponse> {
     return this.fm.delete<EmptyResponse>(`/records/${recordId}`);
   }
 }

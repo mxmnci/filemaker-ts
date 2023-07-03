@@ -62,3 +62,5 @@ export interface UpdateRecordResponseData {
 
 export interface UpdateRecordResponse
   extends FMResponse<UpdateRecordResponseData> {}
+
+export interface DeleteRecordResponse extends EmptyResponse {}

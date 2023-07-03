@@ -1,14 +1,14 @@
 import { EntityResponse, FindRequestParams } from '..';
 import { FileMakerRequestHandler } from '../requestHandler';
 import { FilemakerTSException } from '../types/exceptions';
-export class FindAPI {
-  private fm: FileMakerRequestHandler;
+export class FindAPI<Entity> {
+  private fm: FileMakerRequestHandler<Entity>;
 
-  constructor(fm: FileMakerRequestHandler) {
+  constructor(fm: FileMakerRequestHandler<Entity>) {
     this.fm = fm;
   }
 
-  public async find<Entity>(findRequest: FindRequestParams<Entity>) {
+  public async find(findRequest: FindRequestParams<Entity>) {
     if (findRequest.query.length < 1) {
       throw new FilemakerTSException('Please define at least one query field');
     }
