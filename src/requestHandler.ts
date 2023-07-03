@@ -6,7 +6,6 @@ import { RecordAPI } from './apis/RecordAPI';
 import { FindAPI } from './apis/FindAPI';
 import { getBaseURL } from './helpers/utils/url.util';
 import { AuthAPI } from './apis/AuthAPI';
-import { RequestQueue } from './helpers/classes/requestQueue';
 
 type RequestHandlerOptions = {
   host: string;
@@ -14,7 +13,6 @@ type RequestHandlerOptions = {
   username: string;
   password: string;
   layout: string;
-  requestQueue: RequestQueue;
   auth: AuthAPI;
   requestMiddleware?: RequestMiddleware;
   responseMiddleware?: ResponseMiddleware;
