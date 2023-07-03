@@ -22,7 +22,7 @@ export type GetRecordRangeParams = {
 };
 
 export interface CreateRecordRequest<Entity> {
-  fieldData: Entity;
+  fieldData: Partial<Entity>;
 }
 
 export interface UpdateRecordRequest<Entity> {

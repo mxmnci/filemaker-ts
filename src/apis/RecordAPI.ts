@@ -46,7 +46,9 @@ export class RecordAPI<Entity> {
    * @param record The entity to create on the current layout
    * @returns CreateRecordResponse
    */
-  public async createRecord(fieldData: Entity): Promise<CreateRecordResponse> {
+  public async createRecord(
+    fieldData: Partial<Entity>
+  ): Promise<CreateRecordResponse> {
     return this.fm.post<CreateRecordResponse, CreateRecordRequest<Entity>>(
       `/records`,
       { fieldData }
