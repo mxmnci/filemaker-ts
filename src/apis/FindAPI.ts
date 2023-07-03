@@ -8,7 +8,9 @@ export class FindAPI<Entity> {
     this.fm = fm;
   }
 
-  public async find(findRequest: FindRequestParams<Entity>) {
+  public async find(
+    findRequest: FindRequestParams<Entity>
+  ): Promise<EntityResponse<Entity>> {
     if (findRequest.query.length < 1) {
       throw new FilemakerTSException('Please define at least one query field');
     }
