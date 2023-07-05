@@ -1,14 +1,12 @@
 import * as dotenv from 'dotenv';
 import {
   FilemakerDataAPIOptions,
-  LoggingConfig,
   RequestMiddleware,
   ResponseMiddleware,
 } from './types';
-import { logger } from './logger';
-import winston from 'winston';
 import { FileMakerRequestHandler } from './requestHandler';
 import { AuthAPI } from './apis/AuthAPI';
+import { configureLogging } from './helpers/configureLogging';
 dotenv.config();
 
 export * from './types';
@@ -40,7 +38,7 @@ export class FileMakerDataAPI {
     });
 
     // Configure logging
-    this.configureLogging(options.loggingConfig);
+    configureLogging(options.loggingConfig);
   }
 
   /**
@@ -83,38 +81,5 @@ export class FileMakerDataAPI {
       globalResponseMiddleware: this.responseMiddleware,
       auth: this.auth,
     });
-  }
-
-  /**
-   * Configure debug logging for winston
-   * @param config The logging config
-   */
-  private configureLogging(config: LoggingConfig = {}): void {
-    if (config.logDebugToConsole) {
-      logger.add(
-        new winston.transports.Console({
-          level: 'debug',
-          format: winston.format.combine(
-            winston.format.colorize(),
-            winston.format.printf(info => `filemaker-ts: ${info.message}`)
-          ),
-        })
-      );
-    } else if (config.logCombinedToFile) {
-      logger.add(
-        new winston.transports.File({
-          filename: 'combined.log',
-        })
-      );
-    } else if (config.logErrorsToFile) {
-      logger.add(
-        new winston.transports.File({
-          filename: 'error.log',
-          level: 'error',
-        })
-      );
-    } else {
-      logger.silent = true;
-    }
   }
 }
