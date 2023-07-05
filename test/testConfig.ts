@@ -1,4 +1,7 @@
 import { FilemakerDataAPIOptions } from '../src';
+import dotenv from 'dotenv';
+import { configureLogging } from '../src/helpers/configureLogging';
+dotenv.config();
 
 // Validate environment variables
 function loadEnvVar(envVar: string): string {
@@ -16,9 +19,10 @@ export const testConfig: FilemakerDataAPIOptions = {
   database: loadEnvVar('FILEMAKER_DATABASE'),
   username: loadEnvVar('FILEMAKER_USER'),
   password: loadEnvVar('FILEMAKER_PASSWORD'),
-  loggingConfig: {
-    logDebugToConsole: true,
-  },
 };
 
 export const testLayout = process.env.FILEMAKER_LAYOUT || 'Testing';
+
+configureLogging({
+  logDebugToConsole: true,
+});
