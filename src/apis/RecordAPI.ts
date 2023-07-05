@@ -21,7 +21,9 @@ export class RecordAPI<Entity> {
    * @param recordId The ID of the record to retrieve on the current layout
    * @returns EntityResponse
    */
-  public async getRecord(recordId: string): Promise<EntityResponse<Entity>> {
+  public async getRecord(
+    recordId: string
+  ): Promise<EntityResponse<Entity> | null> {
     return this.fm.get<EntityResponse<Entity>>(`/records/${recordId}`);
   }
 
@@ -32,7 +34,7 @@ export class RecordAPI<Entity> {
    */
   public async getRecordRange(
     params: GetRecordRangeParams
-  ): Promise<EntityResponse<Entity>> {
+  ): Promise<EntityResponse<Entity> | null> {
     const queryString = encodeObjectAsQueryString({
       _offset: params.offset !== undefined ? params.offset.toString() : '1',
       _limit: params.limit !== undefined ? params.limit.toString() : '',
@@ -48,7 +50,7 @@ export class RecordAPI<Entity> {
    */
   public async createRecord(
     fieldData: Partial<Entity>
-  ): Promise<CreateRecordResponse> {
+  ): Promise<CreateRecordResponse | null> {
     return this.fm.post<CreateRecordResponse, CreateRecordRequest<Entity>>(
       `/records`,
       { fieldData }
@@ -65,7 +67,7 @@ export class RecordAPI<Entity> {
   public async updateRecord(
     recordId: string,
     fieldData: Partial<Entity>
-  ): Promise<UpdateRecordResponse> {
+  ): Promise<UpdateRecordResponse | null> {
     return this.fm.patch<UpdateRecordResponse, UpdateRecordRequest<Entity>>(
       `/records/${recordId}`,
       { fieldData }
@@ -78,7 +80,9 @@ export class RecordAPI<Entity> {
    * @param recordId The ID of the record to be deleted
    * @returns EmptyResponse
    */
-  public async deleteRecord(recordId: string): Promise<DeleteRecordResponse> {
-    return this.fm.delete<EmptyResponse>(`/records/${recordId}`);
+  public async deleteRecord(
+    recordId: string
+  ): Promise<DeleteRecordResponse | null> {
+    return this.fm.delete<EmptyResponse | null>(`/records/${recordId}`);
   }
 }

@@ -12,7 +12,7 @@ axios.defaults.adapter = require('axios/lib/adapters/http');
 
 export async function fmAxios<ResponseType, RequestDataType = any>(
   params: FMAxiosParams<RequestDataType>
-): Promise<AxiosResponse<ResponseType>['data']> {
+): Promise<AxiosResponse<ResponseType>['data'] | null> {
   const { baseURL, url, method, auth, data, config } = params;
   const { contentType, ...axiosConfig } = config ?? {};
 
@@ -35,6 +35,14 @@ export async function fmAxios<ResponseType, RequestDataType = any>(
     if (axios.isAxiosError(error)) {
       // Handle FileMaker Data API errors
       if (error.response && isFileMakerErrorResponse(error.response)) {
+        // Return null if no records are found
+        if (
+          error.response.data.messages &&
+          error.response.data.messages[0].code === '401'
+        ) {
+          return null;
+        }
+
         throw handleFileMakerDataAPIException(error.response.data);
       }
     }

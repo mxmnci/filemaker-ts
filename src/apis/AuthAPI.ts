@@ -5,7 +5,7 @@ import { AuthResponse, EmptyResponse } from '..';
 import { logger } from '../logger';
 import { getBaseURL } from '../helpers/utils/url.util';
 
-const TIME_LIMIT = 1000 * 60 * 15;
+export const AUTH_TIME_LIMIT = 1000 * 60 * 15; // 15 minutes
 
 export type AuthAPIOptions = {
   host: string;
@@ -80,7 +80,7 @@ export class AuthAPI {
    */
   private isStoredAccessTokenValid(): boolean {
     const timeElapsedSinceTokenRefresh = Date.now() - this.accessTokenTimestamp;
-    const isTimeLimitExceeded = timeElapsedSinceTokenRefresh > TIME_LIMIT;
+    const isTimeLimitExceeded = timeElapsedSinceTokenRefresh >= AUTH_TIME_LIMIT;
     return !isTimeLimitExceeded && this.accessToken ? true : false;
   }
 
@@ -147,13 +147,13 @@ export class AuthAPI {
    * @param authToken The auth token
    * @returns {Promise<EmptyResponse>} Promise resolved with the response
    */
-  public async logout(authToken: string): Promise<EmptyResponse> {
+  public async logout(): Promise<EmptyResponse | null> {
     const response = await fmAxios<EmptyResponse>({
       baseURL: getBaseURL({
         host: this.host,
         database: this.database,
       }),
-      url: `/sessions/${authToken}`,
+      url: `/sessions/${this.accessToken}`,
       method: 'DELETE',
       auth: {
         method: FMAuthMethod.NONE,

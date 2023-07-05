@@ -10,7 +10,7 @@ export class FindAPI<Entity> {
 
   public async find(
     findRequest: FindRequestParams<Entity>
-  ): Promise<EntityResponse<Entity>> {
+  ): Promise<EntityResponse<Entity> | null> {
     if (findRequest.query.length < 1) {
       throw new FilemakerTSException('Please define at least one query field');
     }
