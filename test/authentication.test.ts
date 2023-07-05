@@ -20,12 +20,12 @@ describe('Authentication', () => {
     expect(client.auth.getAccessTokenTimestamp()).toBeLessThanOrEqual(
       Date.now()
     );
-    await client.auth.logout(accessToken);
+    await client.auth.logout();
   });
 
   test('logout', async () => {
-    const accessToken = await client.auth.login();
-    await client.auth.logout(accessToken);
+    await client.auth.login();
+    await client.auth.logout();
     expect(client.auth.getAccessToken()).toBeNull();
     expect(client.auth.getAccessTokenTimestamp()).toBe(0);
   });
