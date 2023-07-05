@@ -18,10 +18,11 @@ jest.setTimeout(30000);
 describe('Stress Test', () => {
   let client: FileMakerRequestHandler<TestEntity>;
 
-  beforeEach(() => {
+  beforeAll(async () => {
     client = new FileMakerDataAPI(testConfig).createRequestHandler<TestEntity>(
       testLayout
     );
+    await client.auth.login();
   });
 
   afterAll(async () => {
@@ -29,21 +30,20 @@ describe('Stress Test', () => {
       query: [{ name: '*' }],
     });
     const records = response.response.data;
-    for (const record of records) {
-      await client.records.deleteRecord(record.recordId);
-    }
+
+    await Promise.all(
+      records.map(record => client.records.deleteRecord(record.recordId))
+    );
   });
 
   test('create 100 records', async () => {
     for (let i = 0; i < 100; i++) {
-      console.log('Creating record ' + i);
       await client.records.createRecord(testEntity);
     }
   });
 
   test('create 100 records in parallel', async () => {
     const promises: Promise<CreateRecordResponse>[] = [];
-    await client.auth.login();
     for (let i = 0; i < 100; i++) {
       promises.push(client.records.createRecord(testEntity));
     }
